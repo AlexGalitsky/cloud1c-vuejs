@@ -1,23 +1,31 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { basesApi } from '@/api/bases';
 import type { Base1C, CreateBaseRequest, BaseStatusResponse } from '@/api/bases';
+
+const POLLING_INTERVAL = 1000; // 1 секунда
 
 export const useBasesStore = defineStore('bases', () => {
   const bases = ref<Base1C[]>([]);
   const isLoading = ref(false);
   const error = ref<string | null>(null);
+  const pollingTimer = ref<number | null>(null);
 
+  // Computed
+  const totalCount = computed(() => bases.value.length);
+  const readyCount = computed(() => bases.value.filter(b => b.status === 'ready').length);
+  const processingCount = computed(() => bases.value.filter(b => b.status === 'processing').length);
+  const errorCount = computed(() => bases.value.filter(b => b.status === 'error').length);
+
+  // Actions
   async function fetchBases() {
     isLoading.value = true;
     error.value = null;
     try {
-      const response = await basesApi.getAll();
-      console.log('API response for bases:', response);
-      bases.value = response;
+      bases.value = await basesApi.getAll();
     } catch (e: any) {
-      console.error('Error fetching bases:', e);
       error.value = e.response?.data?.message || 'Ошибка загрузки баз';
+      throw e;
     } finally {
       isLoading.value = false;
     }
@@ -41,6 +49,7 @@ export const useBasesStore = defineStore('bases', () => {
     try {
       const newBase = await basesApi.create(formData);
       bases.value.push(newBase);
+      startPolling(); // Запускаем polling после создания
       return newBase;
     } catch (e: any) {
       error.value = e.response?.data?.message || 'Ошибка создания базы';
@@ -65,6 +74,9 @@ export const useBasesStore = defineStore('bases', () => {
       if (index !== -1) {
         bases.value[index] = updatedBase;
       }
+      if (dtFile) {
+        startPolling(); // Запускаем polling если загружен новый файл
+      }
       return updatedBase;
     } catch (e: any) {
       error.value = e.response?.data?.message || 'Ошибка обновления базы';
@@ -83,14 +95,59 @@ export const useBasesStore = defineStore('bases', () => {
     }
   }
 
+  // Long Polling
+  function startPolling() {
+    // Очищаем предыдущий таймер
+    stopPolling();
+
+    // Немедленно обновляем
+    pollBases();
+
+    // Устанавливаем интервал
+    pollingTimer.value = window.setInterval(pollBases, POLLING_INTERVAL);
+  }
+
+  function stopPolling() {
+    if (pollingTimer.value) {
+      clearInterval(pollingTimer.value);
+      pollingTimer.value = null;
+    }
+  }
+
+  async function pollBases() {
+    try {
+      bases.value = await basesApi.getAll();
+    } catch (e) {
+      // Тихая ошибка при polling - не прерываем работу
+      console.error('Polling error:', e);
+    }
+  }
+
+  // Очистка polling при размонтировании store (опционально)
+  function dispose() {
+    stopPolling();
+  }
+
   return {
+    // State
     bases,
     isLoading,
     error,
+
+    // Computed
+    totalCount,
+    readyCount,
+    processingCount,
+    errorCount,
+
+    // Actions
     fetchBases,
     fetchBaseStatus,
     createBase,
     updateBase,
     deleteBase,
+    startPolling,
+    stopPolling,
+    dispose,
   };
 });

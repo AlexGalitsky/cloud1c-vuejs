@@ -1,5 +1,7 @@
 <template>
-  <router-view />
+  <div class="antialiased">
+    <router-view />
+  </div>
 </template>
 
 <script setup lang="ts"></script>
@@ -12,7 +14,9 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
     'Open Sans', 'Helvetica Neue', sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
 }
 </style>

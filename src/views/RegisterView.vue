@@ -1,49 +1,60 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-100">
-    <div class="bg-white p-8 rounded-lg shadow-md w-96">
-      <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Регистрация</h2>
-      <form @submit.prevent="handleSubmit">
-        <div class="mb-4">
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
-            Email
-          </label>
-          <input
-            id="email"
-            v-model="email"
-            type="email"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
+  <div class="min-h-screen flex items-center justify-center p-4">
+    <AppCard class="w-full max-w-md !p-8 animate-fade-in">
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full gradient-success mb-4">
+          <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+          </svg>
         </div>
-        <div class="mb-6">
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
-            Пароль
-          </label>
-          <input
-            id="password"
-            v-model="password"
-            type="password"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-            minlength="6"
-          />
-        </div>
-        <button
+        <h2 class="text-3xl font-bold text-gray-800">Регистрация</h2>
+        <p class="text-gray-500 mt-2">Создайте аккаунт для доступа</p>
+      </div>
+
+      <form @submit.prevent="handleSubmit" class="space-y-5">
+        <AppInput
+          v-model="email"
+          type="email"
+          label="Email"
+          placeholder="you@example.com"
+          icon="email"
+          required
+        />
+
+        <AppInput
+          v-model="password"
+          type="password"
+          label="Пароль"
+          placeholder="••••••••"
+          icon="password"
+          hint="Минимум 6 символов"
+          minlength="6"
+          required
+        />
+
+        <AppButton
           type="submit"
-          :disabled="isLoading"
-          class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition disabled:opacity-50"
+          variant="success"
+          class="w-full"
+          :loading="isLoading"
         >
           {{ isLoading ? 'Регистрация...' : 'Зарегистрироваться' }}
-        </button>
+        </AppButton>
       </form>
-      <p class="mt-4 text-center text-sm text-gray-600">
-        Уже есть аккаунт?
-        <router-link to="/login" class="text-blue-600 hover:underline">
-          Войти
-        </router-link>
-      </p>
-      <p v-if="error" class="mt-4 text-center text-red-500 text-sm">{{ error }}</p>
-    </div>
+
+      <div v-if="error" class="mt-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm text-center">
+        {{ error }}
+      </div>
+
+      <div class="mt-6 text-center">
+        <p class="text-sm text-gray-500">
+          Уже есть аккаунт?
+          <router-link to="/login" class="text-green-600 font-semibold hover:text-green-700 hover:underline transition-all">
+            Войти
+          </router-link>
+        </p>
+      </div>
+    </AppCard>
   </div>
 </template>
 
@@ -51,13 +62,15 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import AppCard from '@/components/ui/AppCard.vue';
+import AppInput from '@/components/ui/AppInput.vue';
+import AppButton from '@/components/ui/AppButton.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
 
 const email = ref('');
 const password = ref('');
-
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 
