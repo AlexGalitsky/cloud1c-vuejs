@@ -25,8 +25,14 @@
                   >
                     Редактировать
                   </v-btn>
-                  <v-btn variant="text" prepend-icon="mdi-arrow-left" @click="$router.push('/dashboard')">
-                    Назад
+                  <v-btn
+                    v-if="base"
+                    color="success"
+                    prepend-icon="mdi-cloud-upload"
+                    :loading="isPublishing"
+                    @click="handlePublish"
+                  >
+                    Опубликовать
                   </v-btn>
                 </div>
               </div>
@@ -98,8 +104,6 @@
                 <div class="d-flex align-center ga-2">
                   <div class="d-flex">
                     <span class="rounded-circle bg-error d-inline-block" style="width: 12px; height: 12px;" />
-                    <span class="rounded-circle bg-warning d-inline-block mx-1" style="width: 12px; height: 12px;" />
-                    <span class="rounded-circle bg-success d-inline-block" style="width: 12px; height: 12px;" />
                   </div>
                   <span class="text-subtitle-1 font-weight-bold">Консоль выполнения</span>
                   <v-chip v-if="isPolling" color="success" size="x-small" class="ms-2">
@@ -239,9 +243,11 @@ const applyingId = ref<number | null>(null)
 // Dialog states
 const showUploadDialog = ref(false)
 const showApplyDialog = ref(false)
+const showPublishDialog = ref(false)
 const selectedDtFile = ref<File | null>(null)
 const isUploading = ref(false)
 const isApplying = ref(false)
+const isPublishing = ref(false)
 const applyForm = ref({ adminUser: '', adminPass: '' })
 const pendingApplyId = ref<number | null>(null)
 
@@ -337,6 +343,21 @@ async function doApply(id: number, adminUser?: string, adminPass?: string) {
 async function handleDeleteFile(id: number) {
   if (confirm('Вы уверены, что хотите удалить этот файл?')) {
     await basesStore.deleteDtFile(baseId.value, id)
+  }
+}
+
+async function handlePublish() {
+  if (!confirm('Опубликовать базу на веб-сервере?')) return
+  
+  isPublishing.value = true
+  try {
+    await basesStore.publishBase(baseId.value)
+    // Обновляем информацию о базе после публикации
+    await basesStore.fetchBaseById(baseId.value)
+  } catch (e) {
+    // Ошибка уже установлена в store
+  } finally {
+    isPublishing.value = false
   }
 }
 </script>

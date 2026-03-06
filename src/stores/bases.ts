@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { basesApi, dtFilesApi } from '@/api/bases';
+import api from '@/api';
 import type { Base1C, CreateBaseRequest, BaseStatusResponse, DtFile, UploadDtRequest, UpdateBaseRequest, ApplyDtRequest } from '@/api/bases';
 
 const POLLING_INTERVAL = 1000; // 1 секунда
@@ -122,6 +123,16 @@ export const useBasesStore = defineStore('bases', () => {
     }
   }
 
+  async function publishBase(id: number) {
+    error.value = null;
+    try {
+      await api.post(`/bases/${id}/publish`);
+    } catch (e: any) {
+      error.value = e.response?.data?.message || 'Ошибка публикации базы';
+      throw e;
+    }
+  }
+
   // Long Polling для конкретной базы
   function startPollingForBase(baseId: number) {
     if (isPolling.value) {
@@ -207,6 +218,7 @@ export const useBasesStore = defineStore('bases', () => {
     uploadDt,
     updateBase,
     deleteBase,
+    publishBase,
     startPollingForBase,
     stopPolling,
     setCurrentBase,
