@@ -17,7 +17,7 @@
             label="Email"
             placeholder="name@company.com"
             icon="mdi-email"
-            :rules="[v => !!v || 'Введите email', v => /.+@.+\..+/.test(v) || 'Некорректный email']"
+            :rules="[(v: string) => !!v || 'Введите email', (v: string) => /.+@.+\..+/.test(v) || 'Некорректный email']"
             required
           />
 
@@ -27,7 +27,7 @@
             label="Пароль"
             placeholder="••••••••"
             icon="mdi-lock"
-            :rules="[v => !!v || 'Введите пароль', v => (v && v.length >= 6) || 'Минимум 6 символов']"
+            :rules="[(v: string) => !!v || 'Введите пароль', (v: string) => (v && v.length >= 6) || 'Минимум 6 символов']"
             required
           />
 

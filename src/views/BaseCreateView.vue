@@ -18,7 +18,7 @@
                   label="Название базы"
                   placeholder="Бухгалтерия"
                   icon="mdi-text"
-                  :rules="[v => !!v || 'Введите название']"
+                  :rules="[(v: string) => !!v || 'Введите название']"
                   required
                 />
 
@@ -27,7 +27,7 @@
                   label="Путь к серверу"
                   placeholder="Server/Base"
                   icon="mdi-server"
-                  :rules="[v => !!v || 'Введите путь']"
+                  :rules="[(v: string) => !!v || 'Введите путь']"
                   required
                 />
 
@@ -38,7 +38,7 @@
                       label="Пользователь 1С"
                       placeholder="Admin"
                       icon="mdi-account"
-                      :rules="[v => !!v || 'Введите пользователя']"
+                      :rules="[(v: string) => !!v || 'Введите пользователя']"
                       required
                     />
                   </v-col>
@@ -49,7 +49,7 @@
                       label="Пароль 1С"
                       placeholder="••••••"
                       icon="mdi-lock"
-                      :rules="[v => !!v || 'Введите пароль']"
+                      :rules="[(v: string) => !!v || 'Введите пароль']"
                       required
                     />
                   </v-col>
@@ -102,7 +102,7 @@ import type { CreateBaseRequest } from '@/api/bases'
 const router = useRouter()
 const basesStore = useBasesStore()
 
-const formRef = ref<VForm | null>(null)
+const formRef = ref<HTMLFormElement | null>(null)
 
 const form = reactive<CreateBaseRequest>({
   name: '',
@@ -115,7 +115,7 @@ const selectedFile = ref<File | null>(null)
 const isSubmitting = ref(false)
 
 async function handleSubmit() {
-  if (!formRef.value?.valid) return
+  if (!formRef.value) return
 
   isSubmitting.value = true
   try {

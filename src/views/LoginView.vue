@@ -17,7 +17,7 @@
             label="Email"
             placeholder="name@company.com"
             icon="mdi-email"
-            :rules="[v => !!v || 'Введите email']"
+            :rules="[(v: string) => !!v || 'Введите email']"
             required
           />
 
@@ -27,7 +27,7 @@
             label="Пароль"
             placeholder="••••••••"
             icon="mdi-lock"
-            :rules="[v => !!v || 'Введите пароль']"
+            :rules="[(v: string) => !!v || 'Введите пароль']"
             required
           />
 

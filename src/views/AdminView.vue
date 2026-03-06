@@ -110,11 +110,11 @@ const router = useRouter();
 const adminStore = useAdminStore();
 
 const headers = [
-  { title: 'Email', key: 'email', align: 'start' },
-  { title: 'Роль', key: 'role', align: 'center' },
-  { title: 'Статус', key: 'status', align: 'center' },
-  { title: 'Подтвержден', key: 'confirmedAt', align: 'center' },
-  { title: 'Действия', key: 'actions', align: 'center', sortable: false },
+  { title: 'Email', key: 'email', align: 'start' as const },
+  { title: 'Роль', key: 'role', align: 'center' as const },
+  { title: 'Статус', key: 'status', align: 'center' as const },
+  { title: 'Подтвержден', key: 'confirmedAt', align: 'center' as const },
+  { title: 'Действия', key: 'actions', align: 'center' as const, sortable: false },
 ];
 
 const getStatusColor = (status: string) => {

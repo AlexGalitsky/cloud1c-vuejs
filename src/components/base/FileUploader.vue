@@ -8,7 +8,7 @@
     @dragover.prevent="isDragging = true"
     @dragleave="isDragging = false"
     @drop.prevent="handleDrop"
-    @click="$refs.fileInput.click()"
+    @click="fileInput?.click()"
   >
     <input
       ref="fileInput"
@@ -103,7 +103,8 @@ function handleFileSelect(event: Event) {
   }
 }
 
-function emitFile(file: File) {
+function emitFile(file: File | undefined) {
+  if (!file) return
   if (props.multiple) {
     emit('update:modelValue', [file])
   } else {
