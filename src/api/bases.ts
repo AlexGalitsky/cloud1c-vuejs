@@ -16,6 +16,18 @@ export interface Base1C {
   ownerId: number;
 }
 
+export interface DtFile {
+  id: number;
+  filename: string;
+  originalName: string;
+  filePath: string;
+  fileSize: number;
+  baseId: number;
+  createdAt: string;
+  lastAppliedAt: string | null;
+  applied: boolean;
+}
+
 export interface CreateBaseRequest {
   name: string;
   serverPath: string;
@@ -71,5 +83,20 @@ export const basesApi = {
 
   delete: async (id: number): Promise<void> => {
     await api.delete(`/bases/${id}`);
+  },
+};
+
+export const dtFilesApi = {
+  getAll: async (baseId: number): Promise<DtFile[]> => {
+    const response = await api.get<DtFile[]>(`/bases/${baseId}/dt-files`);
+    return response.data;
+  },
+
+  delete: async (baseId: number, id: number): Promise<void> => {
+    await api.delete(`/bases/${baseId}/dt-files/${id}`);
+  },
+
+  apply: async (baseId: number, id: number): Promise<void> => {
+    await api.post(`/bases/${baseId}/dt-files/${id}/apply`);
   },
 };

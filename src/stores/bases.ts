@@ -1,13 +1,14 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { basesApi } from '@/api/bases';
-import type { Base1C, CreateBaseRequest, BaseStatusResponse } from '@/api/bases';
+import { basesApi, dtFilesApi } from '@/api/bases';
+import type { Base1C, CreateBaseRequest, BaseStatusResponse, DtFile } from '@/api/bases';
 
 const POLLING_INTERVAL = 1000; // 1 секунда
 
 export const useBasesStore = defineStore('bases', () => {
   const bases = ref<Base1C[]>([]);
   const currentBase = ref<Base1C | null>(null);
+  const dtFiles = ref<DtFile[]>([]);
   const isLoading = ref(false);
   const error = ref<string | null>(null);
   const pollingTimer = ref<number | null>(null);
@@ -149,10 +150,44 @@ export const useBasesStore = defineStore('bases', () => {
     currentBase.value = base;
   }
 
+  async function fetchDtFiles(baseId: number) {
+    isLoading.value = true;
+    error.value = null;
+    try {
+      dtFiles.value = await dtFilesApi.getAll(baseId);
+    } catch (e: any) {
+      error.value = e.response?.data?.message || 'Ошибка загрузки файлов';
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  async function deleteDtFile(baseId: number, id: number) {
+    error.value = null;
+    try {
+      await dtFilesApi.delete(baseId, id);
+      dtFiles.value = dtFiles.value.filter(f => f.id !== id);
+    } catch (e: any) {
+      error.value = e.response?.data?.message || 'Ошибка удаления файла';
+      throw e;
+    }
+  }
+
+  async function applyDtFile(baseId: number, id: number) {
+    error.value = null;
+    try {
+      await dtFilesApi.apply(baseId, id);
+    } catch (e: any) {
+      error.value = e.response?.data?.message || 'Ошибка применения файла';
+      throw e;
+    }
+  }
+
   return {
     // State
     bases,
     currentBase,
+    dtFiles,
     isLoading,
     error,
     isPolling,
@@ -173,5 +208,8 @@ export const useBasesStore = defineStore('bases', () => {
     startPollingForBase,
     stopPolling,
     setCurrentBase,
+    fetchDtFiles,
+    deleteDtFile,
+    applyDtFile,
   };
 });

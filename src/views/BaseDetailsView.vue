@@ -93,7 +93,7 @@
             </v-row>
 
             <!-- Console -->
-            <v-card elevation="2">
+            <v-card elevation="2" class="mb-6">
               <v-card-title class="pa-4">
                 <div class="d-flex align-center ga-2">
                   <div class="d-flex">
@@ -112,6 +112,14 @@
                 <BaseLogsView :log="base.lastLog" :status="base.status" height="300" />
               </v-card-text>
             </v-card>
+
+            <!-- DT Files -->
+            <DtFilesList
+              :files="dtFiles"
+              :applying-id="applyingId"
+              @apply="handleApplyFile"
+              @delete="handleDeleteFile"
+            />
           </template>
         </v-col>
       </v-row>
@@ -125,13 +133,16 @@ import { useRoute } from 'vue-router'
 import { useBasesStore } from '@/stores/bases'
 import BaseStatusBadge from '@/components/base/BaseStatusBadge.vue'
 import BaseLogsView from '@/components/base/BaseLogsView.vue'
+import DtFilesList from '@/components/base/DtFilesList.vue'
 
 const route = useRoute()
 const basesStore = useBasesStore()
 
 const baseId = computed(() => Number(route.params.id))
 const base = computed(() => basesStore.currentBase)
+const dtFiles = computed(() => basesStore.dtFiles)
 const isPolling = computed(() => basesStore.isPolling)
+const applyingId = ref<number | null>(null)
 
 const statusColor: Record<string, string> = {
   ready: 'success',
@@ -141,6 +152,7 @@ const statusColor: Record<string, string> = {
 
 onMounted(async () => {
   await basesStore.fetchBaseById(baseId.value)
+  await basesStore.fetchDtFiles(baseId.value)
   basesStore.startPollingForBase(baseId.value)
 })
 
@@ -153,8 +165,29 @@ onUnmounted(() => {
 watch(baseId, async (newId) => {
   basesStore.stopPolling()
   await basesStore.fetchBaseById(newId)
+  await basesStore.fetchDtFiles(newId)
   basesStore.startPollingForBase(newId)
 })
+
+async function handleApplyFile(id: number) {
+  applyingId.value = id
+  try {
+    await basesStore.applyDtFile(baseId.value, id)
+    // Обновляем список файлов после применения
+    setTimeout(async () => {
+      await basesStore.fetchDtFiles(baseId.value)
+      applyingId.value = null
+    }, 2000)
+  } catch (e) {
+    applyingId.value = null
+  }
+}
+
+async function handleDeleteFile(id: number) {
+  if (confirm('Вы уверены, что хотите удалить этот файл?')) {
+    await basesStore.deleteDtFile(baseId.value, id)
+  }
+}
 </script>
 
 <style scoped>
