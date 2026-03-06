@@ -12,14 +12,14 @@
         <div class="flex min-h-full items-center justify-center p-4">
           <div
             :class="[
-              'relative glass rounded-2xl shadow-2xl w-full',
+              'relative bg-white rounded-2xl shadow-2xl w-full',
               'transform transition-all',
               sizeClasses[size],
             ]"
           >
             <!-- Header -->
             <div v-if="title || $slots.header" class="flex items-center justify-between p-6 border-b border-gray-100">
-              <h2 v-if="title" class="text-2xl font-bold text-gray-800">{{ title }}</h2>
+              <h2 v-if="title" class="text-2xl font-bold text-[#4B5563]">{{ title }}</h2>
               <slot name="header" />
               <button
                 v-if="showClose"

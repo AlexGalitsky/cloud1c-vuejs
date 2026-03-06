@@ -1,33 +1,40 @@
 <template>
-  <div class="min-h-screen p-8">
+  <div class="min-h-screen p-8 bg-gray-100">
     <div class="max-w-7xl mx-auto">
       <!-- Header -->
       <AppCard class="mb-8">
-        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-          <div class="flex items-center gap-4">
-            <div class="w-14 h-14 rounded-full gradient-primary flex items-center justify-center shadow-lg">
-              <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-            </div>
-            <div>
-              <h1 class="text-2xl font-bold text-gray-800">Облачная 1С</h1>
-              <p class="text-sm text-gray-500">Управление базами данных</p>
-            </div>
+        <template #header>
+          <div class="w-14 h-14 rounded-full bg-[#4F46E5] flex items-center justify-center shadow-lg">
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
           </div>
-          <div class="flex gap-3">
-            <AppButton variant="primary" @click="showModal = true">
+          <div>
+            <h1 class="text-2xl font-bold text-[#4B5563]">Облачная 1С</h1>
+            <p class="text-sm text-[#6B7280]">Управление базами данных</p>
+          </div>
+        </template>
+
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+          <div class="text-sm font-light text-[#6B7280]">
+            Управление базами 1С
+          </div>
+          <div class="flex gap-3 w-full md:w-auto">
+            <AppButton variant="primary" class="flex-1 md:flex-none" @click="showModal = true">
               <template #icon>
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"></path>
+                  <path d="M12 5v14"></path>
                 </svg>
               </template>
               Новая база
             </AppButton>
-            <AppButton variant="secondary" @click="logout">
+            <AppButton variant="outline" class="flex-1 md:flex-none" @click="logout">
               <template #icon>
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                  <polyline points="16 17 21 12 16 7"></polyline>
+                  <line x1="21" x2="9" y1="12" y2="12"></line>
                 </svg>
               </template>
               Выйти
@@ -41,8 +48,8 @@
         <AppCard class="!p-5">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm text-gray-500 font-medium">Всего баз</p>
-              <p class="text-3xl font-bold text-gray-800 mt-1">{{ basesStore.totalCount }}</p>
+              <p class="text-sm text-[#6B7280] font-light">Всего баз</p>
+              <p class="text-3xl font-bold text-[#4B5563] mt-1">{{ basesStore.totalCount }}</p>
             </div>
             <div class="w-14 h-14 rounded-full bg-purple-100 flex items-center justify-center">
               <svg class="w-7 h-7 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -55,7 +62,7 @@
         <AppCard class="!p-5">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm text-gray-500 font-medium">Готовы</p>
+              <p class="text-sm text-[#6B7280] font-light">Готовы</p>
               <p class="text-3xl font-bold text-green-600 mt-1">{{ basesStore.readyCount }}</p>
             </div>
             <div class="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
@@ -69,7 +76,7 @@
         <AppCard class="!p-5">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm text-gray-500 font-medium">В процессе</p>
+              <p class="text-sm text-[#6B7280] font-light">В процессе</p>
               <p class="text-3xl font-bold text-yellow-600 mt-1">{{ basesStore.processingCount }}</p>
             </div>
             <div class="w-14 h-14 rounded-full bg-yellow-100 flex items-center justify-center">
@@ -83,7 +90,7 @@
         <AppCard class="!p-5">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm text-gray-500 font-medium">Ошибки</p>
+              <p class="text-sm text-[#6B7280] font-light">Ошибки</p>
               <p class="text-3xl font-bold text-red-600 mt-1">{{ basesStore.errorCount }}</p>
             </div>
             <div class="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center">
@@ -96,15 +103,15 @@
       </div>
 
       <!-- Loading state -->
-      <div v-if="basesStore.isLoading" class="glass rounded-2xl shadow-xl p-12 text-center">
+      <AppCard v-if="basesStore.isLoading" class="p-12 text-center">
         <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-100 mb-4">
           <svg class="animate-spin w-8 h-8 text-purple-600" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
         </div>
-        <p class="text-gray-600 font-medium">Загрузка баз...</p>
-      </div>
+        <p class="text-[#6B7280] font-medium">Загрузка баз...</p>
+      </AppCard>
 
       <!-- Empty state -->
       <AppCard v-else-if="basesStore.bases.length === 0" class="p-12 text-center">
@@ -113,12 +120,13 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
           </svg>
         </div>
-        <h3 class="text-xl font-bold text-gray-800 mb-2">Нет созданных баз</h3>
-        <p class="text-gray-500 mb-6">Создайте первую базу 1С для начала работы</p>
-        <AppButton variant="primary" @click="showModal = true">
+        <h3 class="text-xl font-bold text-[#4B5563] mb-2">Нет созданных баз</h3>
+        <p class="text-[#6B7280] mb-6">Создайте первую базу 1С для начала работы</p>
+        <AppButton variant="primary" class="max-w-xs mx-auto" @click="showModal = true">
           <template #icon>
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14"></path>
+              <path d="M12 5v14"></path>
             </svg>
           </template>
           Создать базу

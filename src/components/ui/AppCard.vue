@@ -1,18 +1,24 @@
 <template>
   <div
     :class="[
-      'glass rounded-2xl shadow-xl overflow-hidden',
-      'hover:shadow-2xl transition-shadow duration-300',
+      'flex flex-col bg-white rounded-2xl shadow-xl',
+      'w-full md:w-1/2 xl:w-2/5 2xl:w-2/5 3xl:w-1/3',
+      'mx-auto p-8 md:p-10 2xl:p-12 3xl:p-14',
       className,
     ]"
   >
-    <div v-if="$slots.header" class="px-6 py-4 border-b border-gray-100">
+    <!-- Header slot -->
+    <div v-if="$slots.header" class="flex flex-row gap-3 pb-4">
       <slot name="header" />
     </div>
-    <div :class="['p-6', contentClass]">
+
+    <!-- Content -->
+    <div :class="['flex flex-col', contentClass]">
       <slot />
     </div>
-    <div v-if="$slots.footer" class="px-6 py-4 border-t border-gray-100 bg-gray-50">
+
+    <!-- Footer slot -->
+    <div v-if="$slots.footer" class="mt-6">
       <slot name="footer" />
     </div>
   </div>

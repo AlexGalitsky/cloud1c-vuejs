@@ -5,7 +5,7 @@
     size="lg"
     @update:model-value="$emit('update:modelValue', $event)"
   >
-    <form @submit.prevent="handleSubmit" class="space-y-5">
+    <div class="flex flex-col">
       <AppInput
         v-model="form.name"
         label="Название базы"
@@ -41,24 +41,27 @@
         />
       </div>
 
-      <FileUploader
-        v-model="selectedFile"
-        label="Файл .dt"
-        accept=".dt"
-        placeholder="Перетащите файл .dt сюда"
-        hint="или кликните для выбора"
-      />
-    </form>
+      <div class="pb-4">
+        <label class="block mb-2 text-sm font-medium text-[#111827]">
+          Файл .dt
+        </label>
+        <FileUploader
+          v-model="selectedFile"
+          accept=".dt"
+          placeholder="Перетащите файл .dt сюда"
+          hint="или кликните для выбора"
+        />
+      </div>
+    </div>
 
     <template #footer>
       <div class="flex gap-3">
-        <AppButton variant="secondary" class="flex-1" type="button" @click="$emit('close')">
+        <AppButton variant="outline" type="button" @click="$emit('close')">
           Отмена
         </AppButton>
         <AppButton
           type="submit"
           variant="primary"
-          class="flex-1"
           :loading="isSubmitting"
           @click="handleSubmit"
         >
