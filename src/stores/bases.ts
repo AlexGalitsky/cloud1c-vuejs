@@ -115,8 +115,12 @@ export const useBasesStore = defineStore('bases', () => {
   async function deleteBase(id: number) {
     error.value = null;
     try {
-      await basesApi.delete(id);
+      const response = await basesApi.delete(id);
       bases.value = bases.value.filter((b) => b.id !== id);
+      // Показываем лог удаления
+      if (response.log) {
+        console.log('Удаление базы:', response.log);
+      }
     } catch (e: any) {
       error.value = e.response?.data?.message || 'Ошибка удаления базы';
       throw e;

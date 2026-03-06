@@ -89,8 +89,9 @@ export const basesApi = {
     return response.data;
   },
 
-  delete: async (id: number): Promise<void> => {
-    await api.delete(`/bases/${id}`);
+  delete: async (id: number): Promise<{ message: string; log: string }> => {
+    const response = await api.delete<{ message: string; log: string }>(`/bases/${id}`);
+    return response.data;
   },
 };
 

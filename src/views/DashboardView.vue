@@ -175,7 +175,15 @@ function handleEdit(baseId: number) {
 }
 
 async function handleDelete(baseId: number) {
-  if (confirm('Вы уверены, что хотите удалить эту базу?')) {
+  const base = basesStore.bases.find(b => b.id === baseId)
+  const isEmpty = base?.isEmpty ?? true
+  
+  let confirmMessage = 'Вы уверены, что хотите удалить эту базу?'
+  if (!isEmpty) {
+    confirmMessage = 'База активна и содержит данные!\n\nБудут удалены:\n- База из кластера 1С\n- База данных PostgreSQL\n- Все файлы .dt\n- Публикация на веб-сервере\n\nПродолжить?'
+  }
+  
+  if (confirm(confirmMessage)) {
     await basesStore.deleteBase(baseId)
   }
 }
