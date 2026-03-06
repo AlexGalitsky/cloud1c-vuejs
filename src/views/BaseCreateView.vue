@@ -31,42 +31,10 @@
                   :rules="[]"
                 />
 
-                <v-row>
-                  <v-col cols="6">
-                    <AppInput
-                      v-model="form.adminUser"
-                      label="Пользователь 1С (необязательно)"
-                      placeholder="Admin"
-                      icon="mdi-account"
-                      :rules="[]"
-                      hint="Можно указать после создания базы"
-                    />
-                  </v-col>
-                  <v-col cols="6">
-                    <AppInput
-                      v-model="form.adminPass"
-                      type="password"
-                      label="Пароль 1С (необязательно)"
-                      placeholder="••••••"
-                      icon="mdi-lock"
-                      :rules="[]"
-                      hint="Можно указать после создания базы"
-                    />
-                  </v-col>
-                </v-row>
-
-                <v-alert type="info" variant="tonal" density="compact" class="mb-4">
+                <v-alert type="info" variant="tonal" density="compact" class="mt-4">
                   <strong>Путь к серверу:</strong> будет сформирован автоматически<br>
                   <span class="text-caption">{{ clusterAddress }}/{{ form.name || '...' }}</span>
                 </v-alert>
-
-                <FileUploader
-                  v-model="selectedFile"
-                  label="Файл .dt (необязательно)"
-                  accept=".dt"
-                  placeholder="Перетащите файл .dt сюда"
-                  hint="или кликните для выбора"
-                />
 
                 <v-alert
                   v-if="basesStore.error"
@@ -101,7 +69,6 @@ import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBasesStore } from '@/stores/bases'
 import AppInput from '@/components/ui/AppInput.vue'
-import FileUploader from '@/components/base/FileUploader.vue'
 import type { CreateBaseRequest } from '@/api/bases'
 
 const router = useRouter()
@@ -112,11 +79,8 @@ const formRef = ref<HTMLFormElement | null>(null)
 const form = reactive<CreateBaseRequest>({
   name: '',
   description: '',
-  adminUser: '',
-  adminPass: '',
 })
 
-const selectedFile = ref<File | null>(null)
 const isSubmitting = ref(false)
 
 const clusterAddress = computed(() => {
@@ -137,7 +101,7 @@ async function handleSubmit() {
 
   isSubmitting.value = true
   try {
-    const newBase = await basesStore.createBase(form, selectedFile.value || undefined)
+    const newBase = await basesStore.createBase(form)
     router.push(`/bases/${newBase.id}`)
   } catch (e) {
     // Ошибка уже установлена в store

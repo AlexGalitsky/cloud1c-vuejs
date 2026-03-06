@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { basesApi, dtFilesApi } from '@/api/bases';
-import type { Base1C, CreateBaseRequest, BaseStatusResponse, DtFile } from '@/api/bases';
+import type { Base1C, CreateBaseRequest, BaseStatusResponse, DtFile, UploadDtRequest, UpdateBaseRequest } from '@/api/bases';
 
 const POLLING_INTERVAL = 1000; // 1 секунда
 
@@ -52,25 +52,10 @@ export const useBasesStore = defineStore('bases', () => {
     return await basesApi.getStatus(id);
   }
 
-  async function createBase(data: CreateBaseRequest, dtFile?: File) {
+  async function createBase(data: CreateBaseRequest) {
     error.value = null;
-    const formData = new FormData();
-    formData.append('name', data.name);
-    if (data.description) {
-      formData.append('description', data.description);
-    }
-    if (data.adminUser) {
-      formData.append('adminUser', data.adminUser);
-    }
-    if (data.adminPass) {
-      formData.append('adminPass', data.adminPass);
-    }
-    if (dtFile) {
-      formData.append('dtFile', dtFile);
-    }
-
     try {
-      const newBase = await basesApi.create(formData);
+      const newBase = await basesApi.create(data);
       bases.value.push(newBase);
       return newBase;
     } catch (e: any) {
@@ -79,24 +64,29 @@ export const useBasesStore = defineStore('bases', () => {
     }
   }
 
-  async function updateBase(id: number, data: Partial<CreateBaseRequest>, dtFile?: File) {
+  async function uploadDt(id: number, dtFile: File, data?: UploadDtRequest) {
     error.value = null;
     const formData = new FormData();
-    if (data.description) {
-      formData.append('description', data.description);
-    }
-    if (data.adminUser) {
+    formData.append('dtFile', dtFile);
+    if (data?.adminUser) {
       formData.append('adminUser', data.adminUser);
     }
-    if (data.adminPass) {
+    if (data?.adminPass) {
       formData.append('adminPass', data.adminPass);
-    }
-    if (dtFile) {
-      formData.append('dtFile', dtFile);
     }
 
     try {
-      const updatedBase = await basesApi.update(id, formData);
+      return await basesApi.uploadDt(id, formData);
+    } catch (e: any) {
+      error.value = e.response?.data?.message || 'Ошибка загрузки файла';
+      throw e;
+    }
+  }
+
+  async function updateBase(id: number, data: Partial<UpdateBaseRequest>) {
+    error.value = null;
+    try {
+      const updatedBase = await basesApi.update(id, data);
       const index = bases.value.findIndex((b) => b.id === id);
       if (index !== -1) {
         bases.value[index] = updatedBase;

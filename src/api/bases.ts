@@ -15,6 +15,7 @@ export interface Base1C {
   lastLog: string;
   ownerId: number;
   description?: string;
+  isEmpty: boolean;
 }
 
 export interface DtFile {
@@ -32,12 +33,18 @@ export interface DtFile {
 export interface CreateBaseRequest {
   name: string;
   description?: string;
-  adminUser?: string;
-  adminPass?: string;
 }
 
 export interface UpdateBaseRequest {
   description?: string;
+}
+
+export interface UploadDtRequest {
+  adminUser?: string;
+  adminPass?: string;
+}
+
+export interface ApplyDtRequest {
   adminUser?: string;
   adminPass?: string;
 }
@@ -63,8 +70,13 @@ export const basesApi = {
     return response.data;
   },
 
-  create: async (data: FormData): Promise<Base1C> => {
-    const response = await api.post<Base1C>('/bases', data, {
+  create: async (data: CreateBaseRequest): Promise<Base1C> => {
+    const response = await api.post<Base1C>('/bases', data);
+    return response.data;
+  },
+
+  uploadDt: async (id: number, data: FormData): Promise<DtFile> => {
+    const response = await api.post<DtFile>(`/bases/${id}/dt-files`, data, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -72,12 +84,8 @@ export const basesApi = {
     return response.data;
   },
 
-  update: async (id: number, data: FormData): Promise<Base1C> => {
-    const response = await api.patch<Base1C>(`/bases/${id}`, data, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+  update: async (id: number, data: UpdateBaseRequest): Promise<Base1C> => {
+    const response = await api.patch<Base1C>(`/bases/${id}`, data);
     return response.data;
   },
 
@@ -96,7 +104,7 @@ export const dtFilesApi = {
     await api.delete(`/bases/${baseId}/dt-files/${id}`);
   },
 
-  apply: async (baseId: number, id: number): Promise<void> => {
-    await api.post(`/bases/${baseId}/dt-files/${id}/apply`);
+  apply: async (baseId: number, id: number, data?: ApplyDtRequest): Promise<void> => {
+    await api.post(`/bases/${baseId}/dt-files/${id}/apply`, data);
   },
 };

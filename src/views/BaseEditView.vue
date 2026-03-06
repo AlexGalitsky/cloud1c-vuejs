@@ -25,45 +25,13 @@
                 <div class="text-body-1 mb-3">{{ base?.serverPath }}</div>
               </div>
 
-              <v-row>
-                <v-col cols="6">
-                  <AppInput
-                    v-model="form.adminUser"
-                    label="Пользователь 1С"
-                    placeholder="Admin"
-                    icon="mdi-account"
-                    :rules="[]"
-                    hint="Необязательно для первого восстановления"
-                  />
-                </v-col>
-                <v-col cols="6">
-                  <AppInput
-                    v-model="form.adminPass"
-                    type="password"
-                    label="Пароль 1С"
-                    placeholder="•••••• (оставьте пустым, чтобы не менять)"
-                    icon="mdi-lock"
-                    :rules="[]"
-                    hint="Необязательно для первого восстановления"
-                  />
-                </v-col>
-              </v-row>
-
-              <div class="text-subtitle-2 text-medium-emphasis mb-1 mt-4">Описание</div>
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">Описание</div>
               <AppInput
                 v-model="form.description"
                 label="Описание"
                 placeholder="Бухгалтерия предприятия"
                 icon="mdi-text-box"
                 :rules="[]"
-              />
-
-              <FileUploader
-                v-model="selectedFile"
-                label="Новый файл .dt (необязательно)"
-                accept=".dt"
-                placeholder="Перетащите файл .dt сюда"
-                hint="Оставьте пустым, чтобы не менять файл"
               />
 
               <v-alert
@@ -94,12 +62,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBasesStore } from '@/stores/bases'
-import type { Base1C, CreateBaseRequest } from '@/api/bases'
+import type { Base1C } from '@/api/bases'
 import AppInput from '@/components/ui/AppInput.vue'
-import FileUploader from '@/components/base/FileUploader.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -111,11 +78,8 @@ const base = ref<Base1C | null>(null)
 
 const form = reactive({
   description: '',
-  adminUser: '',
-  adminPass: '',
 })
 
-const selectedFile = ref<File | null>(null)
 const isSubmitting = ref(false)
 
 onMounted(async () => {
@@ -123,8 +87,6 @@ onMounted(async () => {
   if (fetchedBase) {
     base.value = fetchedBase
     form.description = fetchedBase.description || ''
-    form.adminUser = fetchedBase.adminUser || ''
-    form.adminPass = '' // Пароль не загружаем из соображений безопасности
   }
 })
 
@@ -133,16 +95,7 @@ async function handleSubmit() {
 
   isSubmitting.value = true
   try {
-    // Отправляем adminUser/adminPass только если пароль был изменен
-    const updateData: Partial<CreateBaseRequest> = {
-      description: form.description,
-      adminUser: form.adminUser,
-    }
-    if (form.adminPass) {
-      updateData.adminPass = form.adminPass
-    }
-    
-    await basesStore.updateBase(baseId.value, updateData, selectedFile.value || undefined)
+    await basesStore.updateBase(baseId.value, form)
     router.push(`/bases/${baseId.value}`)
   } catch (e) {
     // Ошибка уже установлена в store
