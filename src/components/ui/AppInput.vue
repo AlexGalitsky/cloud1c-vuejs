@@ -12,14 +12,39 @@
         class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors"
       >
         <slot v-if="$slots.icon" name="icon" />
-        <span v-else v-html="iconSvg" />
+        <!-- Вставляем SVG напрямую вместо v-html для безопасности -->
+        <svg v-else-if="icon === 'email'" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+        </svg>
+        <svg v-else-if="icon === 'password'" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+        <svg v-else-if="icon === 'user'" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+        <svg v-else-if="icon === 'server'" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+        </svg>
+        <svg v-else-if="icon === 'search'" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <svg v-else-if="icon === 'phone'" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+        </svg>
+        <svg v-else-if="icon === 'link'" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+        </svg>
+        <svg v-else class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+        </svg>
       </div>
 
       <!-- Поле ввода -->
       <input
         :id="inputId"
         :type="computedType"
-        :value="modelValue"
+        v-model="model"
+        v-bind="$attrs"
         :placeholder="placeholder"
         :required="required"
         :minlength="minlength"
@@ -32,8 +57,11 @@
           ($slots.icon || icon) ? 'pl-12 pr-4' : 'pl-4 pr-4',
           hasPasswordToggle ? 'pr-12' : 'pr-4',
           disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white',
+          error ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : '',
         ]"
-        @input="handleInput"
+        @blur="$emit('blur', $event)"
+        @focus="$emit('focus', $event)"
+        @change="$emit('change', $event)"
       />
 
       <!-- Кнопка показа пароля -->
@@ -62,13 +90,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, useId } from 'vue';
 
 export type InputType = 'text' | 'email' | 'password' | 'search' | 'tel' | 'url' | 'number';
 export type IconName = 'email' | 'password' | 'user' | 'server' | 'text' | 'search' | 'phone' | 'link';
 
 export interface AppInputProps {
-  modelValue?: string;
   type?: InputType;
   label?: string;
   placeholder?: string;
@@ -81,15 +108,19 @@ export interface AppInputProps {
   id?: string;
 }
 
+// Используем defineModel для Vue 3.4+ (автоматически создаёт modelValue проп)
+const model = defineModel<string>({ required: false });
+
 const props = withDefaults(defineProps<AppInputProps>(), {
-  modelValue: '',
   type: 'text',
   required: false,
   disabled: false,
 });
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string];
+  blur: [event: FocusEvent];
+  focus: [event: FocusEvent];
+  change: [event: Event];
 }>();
 
 // Слоты для TypeScript подсказок
@@ -97,27 +128,16 @@ defineSlots<{
   icon?: () => any;
 }>();
 
-const showPassword = ref(false);
+// Наследуем атрибуты на input элемент
+defineOptions({
+  inheritAttrs: false,
+});
 
-const inputId = computed(() => props.id || `input-${Math.random().toString(36).substr(2, 9)}`);
+// Генерируем уникальный ID (Vue 3.5+ useId для SSR безопасности)
+const generatedId = useId();
+const inputId = computed(() => props.id || generatedId);
+
+const showPassword = ref(false);
 const computedType = computed(() => props.type === 'password' && showPassword.value ? 'text' : props.type);
 const hasPasswordToggle = computed(() => props.type === 'password');
-
-function handleInput(event: Event) {
-  const target = event.target as HTMLInputElement;
-  emit('update:modelValue', target.value);
-}
-
-const iconSvgs: Record<IconName, string> = {
-  email: '<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" /></svg>',
-  password: '<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>',
-  user: '<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>',
-  server: '<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" /></svg>',
-  text: '<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" /></svg>',
-  search: '<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>',
-  phone: '<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>',
-  link: '<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>',
-};
-
-const iconSvg = computed(() => iconSvgs[props.icon || 'text']);
 </script>
