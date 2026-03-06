@@ -16,10 +16,20 @@
             </div>
           </div>
           <div class="flex gap-3">
-            <AppButton variant="primary" left-icon="M12 4v16m8-8H4" @click="showModal = true">
+            <AppButton variant="primary" @click="showModal = true">
+              <template #icon>
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+              </template>
               Новая база
             </AppButton>
-            <AppButton variant="secondary" left-icon="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" @click="logout">
+            <AppButton variant="secondary" @click="logout">
+              <template #icon>
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </template>
               Выйти
             </AppButton>
           </div>
@@ -105,7 +115,12 @@
         </div>
         <h3 class="text-xl font-bold text-gray-800 mb-2">Нет созданных баз</h3>
         <p class="text-gray-500 mb-6">Создайте первую базу 1С для начала работы</p>
-        <AppButton variant="primary" left-icon="M12 4v16m8-8H4" @click="showModal = true">
+        <AppButton variant="primary" @click="showModal = true">
+          <template #icon>
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+          </template>
           Создать базу
         </AppButton>
       </AppCard>
