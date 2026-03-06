@@ -72,7 +72,6 @@ const route = useRoute()
 const router = useRouter()
 const basesStore = useBasesStore()
 
-const formRef = ref<HTMLFormElement | null>(null)
 const baseId = ref(Number(route.params.id))
 const base = ref<Base1C | null>(null)
 
@@ -91,8 +90,6 @@ onMounted(async () => {
 })
 
 async function handleSubmit() {
-  if (!formRef.value) return
-
   isSubmitting.value = true
   try {
     await basesStore.updateBase(baseId.value, form)
