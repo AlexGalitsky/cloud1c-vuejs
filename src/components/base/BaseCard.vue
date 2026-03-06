@@ -1,5 +1,5 @@
 <template>
-  <v-card class="hover-elevation">
+  <v-card class="hover-elevation cursor-pointer" @click="$emit('click')">
     <v-card-text class="pa-6">
       <div class="d-flex justify-space-between align-start mb-4">
         <div class="d-flex align-center ga-3">
@@ -32,10 +32,10 @@
 
       <v-divider class="mb-4" />
       <div class="d-flex ga-2 flex-nowrap">
-        <v-btn variant="tonal" size="small" prepend-icon="mdi-pencil" @click="$emit('edit')">
+        <v-btn variant="tonal" size="small" prepend-icon="mdi-pencil" @click.stop="$emit('edit')">
           Изменить
         </v-btn>
-        <v-btn color="error" variant="tonal" size="small" prepend-icon="mdi-delete" @click="$emit('delete')">
+        <v-btn color="error" variant="tonal" size="small" prepend-icon="mdi-delete" @click.stop="$emit('delete')">
           Удалить
         </v-btn>
       </div>
@@ -53,6 +53,7 @@ defineProps<{
 }>()
 
 defineEmits<{
+  click: []
   edit: []
   delete: []
 }>()
@@ -68,6 +69,10 @@ const statusColor: Record<Base1C['status'], string> = {
 .hover-elevation:hover {
   transform: translateY(-4px);
   transition: transform 0.3s ease;
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
 
 .animate-spin {

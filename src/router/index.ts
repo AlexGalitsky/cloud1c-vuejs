@@ -24,6 +24,24 @@ const router = createRouter({
       component: () => import('@/views/DashboardView.vue'),
       meta: { requiresAuth: true },
     },
+    {
+      path: '/bases/create',
+      name: 'BaseCreate',
+      component: () => import('@/views/BaseCreateView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/bases/:id/edit',
+      name: 'BaseEdit',
+      component: () => import('@/views/BaseEditView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/bases/:id',
+      name: 'BaseDetails',
+      component: () => import('@/views/BaseDetailsView.vue'),
+      meta: { requiresAuth: true },
+    },
   ],
 });
 

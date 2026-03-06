@@ -1,8 +1,9 @@
 <template>
   <div class="min-vh-100 bg-background">
-    <v-container fluid class="pa-8">
+    <v-container fluid class="py-8">
       <v-row justify="center">
         <v-col cols="12" max-width="1400">
+          <!-- Header -->
           <v-card class="mb-6" elevation="2">
             <v-card-text class="pa-6">
               <div class="d-flex flex-column flex-md-row justify-space-between align-center ga-4">
@@ -16,7 +17,7 @@
                   </div>
                 </div>
                 <div class="d-flex ga-2 flex-wrap">
-                  <v-btn color="primary" prepend-icon="mdi-plus" @click="showModal = true">
+                  <v-btn color="primary" prepend-icon="mdi-plus" to="/bases/create">
                     Новая база
                   </v-btn>
                   <v-btn variant="outlined" prepend-icon="mdi-logout" @click="logout">
@@ -27,6 +28,7 @@
             </v-card-text>
           </v-card>
 
+          <!-- Stats -->
           <v-row class="mb-6">
             <v-col cols="12" sm="6" md="3" v-for="(stat, index) in stats" :key="index">
               <v-card elevation="2">
@@ -45,22 +47,25 @@
             </v-col>
           </v-row>
 
+          <!-- Loading -->
           <v-card v-if="basesStore.isLoading" class="pa-12 text-center" elevation="2">
             <v-progress-circular indeterminate color="primary" size="64" class="mb-4" />
             <p class="text-body-1 text-medium-emphasis">Загрузка баз...</p>
           </v-card>
 
+          <!-- Empty -->
           <v-card v-else-if="basesStore.bases.length === 0" class="pa-12 text-center" elevation="2">
             <v-avatar color="grey-lighten-3" size="80" class="mb-6">
               <v-icon icon="mdi-database-off" size="40" color="grey" />
             </v-avatar>
             <h3 class="text-h6 font-weight-bold mb-2">Нет созданных баз</h3>
             <p class="text-body-2 text-medium-emphasis mb-6">Создайте первую базу 1С для начала работы</p>
-            <v-btn color="primary" prepend-icon="mdi-plus" @click="showModal = true">
+            <v-btn color="primary" prepend-icon="mdi-plus" to="/bases/create">
               Создать базу
             </v-btn>
           </v-card>
 
+          <!-- Grid -->
           <v-row v-else>
             <v-col
               v-for="base in basesStore.bases"
@@ -71,39 +76,28 @@
             >
               <BaseCard
                 :base="base"
-                @edit="openEditModal(base)"
+                @edit="handleEdit(base.id)"
                 @delete="handleDelete(base.id)"
+                @click="handleClick(base.id)"
               />
             </v-col>
           </v-row>
         </v-col>
       </v-row>
     </v-container>
-
-    <BaseFormModal
-      v-model="showModal"
-      :base="editingBase"
-      @close="closeModal"
-      @submit="handleSubmit"
-    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBasesStore } from '@/stores/bases'
 import { useAuthStore } from '@/stores/auth'
 import BaseCard from '@/components/base/BaseCard.vue'
-import BaseFormModal from '@/components/base/BaseFormModal.vue'
-import type { Base1C, CreateBaseRequest } from '@/api/bases'
 
 const router = useRouter()
 const basesStore = useBasesStore()
 const authStore = useAuthStore()
-
-const showModal = ref(false)
-const editingBase = ref<Base1C | null>(null)
 
 const stats = computed(() => [
   { title: 'Всего баз', value: basesStore.totalCount, color: 'text-primary', bg: 'purple-lighten-4', icon: 'mdi-database', iconColor: 'primary' },
@@ -114,39 +108,23 @@ const stats = computed(() => [
 
 onMounted(() => {
   loadBases()
-  basesStore.startPolling()
-})
-
-onUnmounted(() => {
-  basesStore.stopPolling()
 })
 
 async function loadBases() {
   await basesStore.fetchBases()
 }
 
-function openEditModal(base: Base1C) {
-  editingBase.value = base
-  showModal.value = true
+function handleClick(baseId: number) {
+  router.push(`/bases/${baseId}`)
 }
 
-function closeModal() {
-  showModal.value = false
-  editingBase.value = null
+function handleEdit(baseId: number) {
+  router.push(`/bases/${baseId}/edit`)
 }
 
-async function handleSubmit(data: CreateBaseRequest, dtFile?: File) {
-  if (editingBase.value) {
-    await basesStore.updateBase(editingBase.value.id, data, dtFile)
-  } else {
-    await basesStore.createBase(data, dtFile)
-  }
-  closeModal()
-}
-
-async function handleDelete(id: number) {
+async function handleDelete(baseId: number) {
   if (confirm('Вы уверены, что хотите удалить эту базу?')) {
-    await basesStore.deleteBase(id)
+    await basesStore.deleteBase(baseId)
   }
 }
 

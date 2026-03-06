@@ -7,9 +7,11 @@ const POLLING_INTERVAL = 1000; // 1 секунда
 
 export const useBasesStore = defineStore('bases', () => {
   const bases = ref<Base1C[]>([]);
+  const currentBase = ref<Base1C | null>(null);
   const isLoading = ref(false);
   const error = ref<string | null>(null);
   const pollingTimer = ref<number | null>(null);
+  const isPolling = ref(false);
 
   // Computed
   const totalCount = computed(() => bases.value.length);
@@ -25,6 +27,20 @@ export const useBasesStore = defineStore('bases', () => {
       bases.value = await basesApi.getAll();
     } catch (e: any) {
       error.value = e.response?.data?.message || 'Ошибка загрузки баз';
+      throw e;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  async function fetchBaseById(id: number) {
+    isLoading.value = true;
+    error.value = null;
+    try {
+      currentBase.value = await basesApi.getById(id);
+      return currentBase.value;
+    } catch (e: any) {
+      error.value = e.response?.data?.message || 'Ошибка загрузки базы';
       throw e;
     } finally {
       isLoading.value = false;
@@ -49,7 +65,6 @@ export const useBasesStore = defineStore('bases', () => {
     try {
       const newBase = await basesApi.create(formData);
       bases.value.push(newBase);
-      startPolling(); // Запускаем polling после создания
       return newBase;
     } catch (e: any) {
       error.value = e.response?.data?.message || 'Ошибка создания базы';
@@ -74,8 +89,8 @@ export const useBasesStore = defineStore('bases', () => {
       if (index !== -1) {
         bases.value[index] = updatedBase;
       }
-      if (dtFile) {
-        startPolling(); // Запускаем polling если загружен новый файл
+      if (currentBase.value?.id === id) {
+        currentBase.value = updatedBase;
       }
       return updatedBase;
     } catch (e: any) {
@@ -95,16 +110,19 @@ export const useBasesStore = defineStore('bases', () => {
     }
   }
 
-  // Long Polling
-  function startPolling() {
-    // Очищаем предыдущий таймер
+  // Long Polling для конкретной базы
+  function startPollingForBase(baseId: number) {
+    if (isPolling.value) {
+      return;
+    }
+    isPolling.value = true;
+    
     stopPolling();
-
-    // Немедленно обновляем
-    pollBases();
-
-    // Устанавливаем интервал
-    pollingTimer.value = window.setInterval(pollBases, POLLING_INTERVAL);
+    pollBase(baseId);
+    
+    pollingTimer.value = window.setInterval(() => {
+      pollBase(baseId);
+    }, POLLING_INTERVAL);
   }
 
   function stopPolling() {
@@ -112,27 +130,32 @@ export const useBasesStore = defineStore('bases', () => {
       clearInterval(pollingTimer.value);
       pollingTimer.value = null;
     }
+    isPolling.value = false;
   }
 
-  async function pollBases() {
+  async function pollBase(baseId: number) {
     try {
-      bases.value = await basesApi.getAll();
+      const status = await basesApi.getStatus(baseId);
+      if (currentBase.value && currentBase.value.id === baseId) {
+        currentBase.value.status = status.status;
+        currentBase.value.lastLog = status.lastLog;
+      }
     } catch (e) {
-      // Тихая ошибка при polling - не прерываем работу
       console.error('Polling error:', e);
     }
   }
 
-  // Очистка polling при размонтировании store (опционально)
-  function dispose() {
-    stopPolling();
+  function setCurrentBase(base: Base1C | null) {
+    currentBase.value = base;
   }
 
   return {
     // State
     bases,
+    currentBase,
     isLoading,
     error,
+    isPolling,
 
     // Computed
     totalCount,
@@ -142,12 +165,13 @@ export const useBasesStore = defineStore('bases', () => {
 
     // Actions
     fetchBases,
+    fetchBaseById,
     fetchBaseStatus,
     createBase,
     updateBase,
     deleteBase,
-    startPolling,
+    startPollingForBase,
     stopPolling,
-    dispose,
+    setCurrentBase,
   };
 });
