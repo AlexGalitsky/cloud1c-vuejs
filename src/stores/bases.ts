@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { basesApi, dtFilesApi } from '@/api/bases';
-import type { Base1C, CreateBaseRequest, BaseStatusResponse, DtFile, UploadDtRequest, UpdateBaseRequest } from '@/api/bases';
+import type { Base1C, CreateBaseRequest, BaseStatusResponse, DtFile, UploadDtRequest, UpdateBaseRequest, ApplyDtRequest } from '@/api/bases';
 
 const POLLING_INTERVAL = 1000; // 1 секунда
 
@@ -79,6 +79,16 @@ export const useBasesStore = defineStore('bases', () => {
       return await basesApi.uploadDt(id, formData);
     } catch (e: any) {
       error.value = e.response?.data?.message || 'Ошибка загрузки файла';
+      throw e;
+    }
+  }
+
+  async function applyDtFile(baseId: number, id: number, data?: ApplyDtRequest) {
+    error.value = null;
+    try {
+      await dtFilesApi.apply(baseId, id, data);
+    } catch (e: any) {
+      error.value = e.response?.data?.message || 'Ошибка применения файла';
       throw e;
     }
   }
@@ -174,16 +184,6 @@ export const useBasesStore = defineStore('bases', () => {
     }
   }
 
-  async function applyDtFile(baseId: number, id: number) {
-    error.value = null;
-    try {
-      await dtFilesApi.apply(baseId, id);
-    } catch (e: any) {
-      error.value = e.response?.data?.message || 'Ошибка применения файла';
-      throw e;
-    }
-  }
-
   return {
     // State
     bases,
@@ -204,6 +204,7 @@ export const useBasesStore = defineStore('bases', () => {
     fetchBaseById,
     fetchBaseStatus,
     createBase,
+    uploadDt,
     updateBase,
     deleteBase,
     startPollingForBase,

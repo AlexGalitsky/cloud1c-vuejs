@@ -114,12 +114,102 @@
             </v-card>
 
             <!-- DT Files -->
-            <DtFilesList
-              :files="dtFiles"
-              :applying-id="applyingId"
-              @apply="handleApplyFile"
-              @delete="handleDeleteFile"
-            />
+            <v-card elevation="2">
+              <v-card-title class="pa-4">
+                <div class="d-flex align-center justify-space-between w-100">
+                  <span class="text-subtitle-1 font-weight-bold">Файлы .dt (версии)</span>
+                  <v-btn
+                    color="primary"
+                    prepend-icon="mdi-plus"
+                    size="small"
+                    @click="showUploadDialog = true"
+                  >
+                    + DT
+                  </v-btn>
+                </div>
+              </v-card-title>
+              <v-card-text class="pa-0">
+                <DtFilesList
+                  :files="dtFiles"
+                  :applying-id="applyingId"
+                  @apply="handleApplyFile"
+                  @delete="handleDeleteFile"
+                />
+              </v-card-text>
+            </v-card>
+
+            <!-- Upload DT Dialog -->
+            <v-dialog v-model="showUploadDialog" max-width="500">
+              <v-card>
+                <v-card-title class="pa-4">
+                  <span class="text-h6 font-weight-bold">Загрузить файл .dt</span>
+                </v-card-title>
+                <v-card-text class="pa-4">
+                  <FileUploader
+                    v-model="selectedDtFile"
+                    label="Файл .dt"
+                    accept=".dt"
+                    placeholder="Перетащите файл .dt сюда"
+                    hint="или кликните для выбора"
+                  />
+                </v-card-text>
+                <v-card-actions class="pa-4">
+                  <v-spacer />
+                  <v-btn variant="outlined" @click="showUploadDialog = false">
+                    Отмена
+                  </v-btn>
+                  <v-btn
+                    color="primary"
+                    :loading="isUploading"
+                    :disabled="!selectedDtFile"
+                    @click="handleUploadDt"
+                  >
+                    Загрузить
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+
+            <!-- Apply DT Dialog -->
+            <v-dialog v-model="showApplyDialog" max-width="500">
+              <v-card>
+                <v-card-title class="pa-4">
+                  <span class="text-h6 font-weight-bold">Применить файл .dt</span>
+                </v-card-title>
+                <v-card-text class="pa-4">
+                  <p class="text-body-2 mb-4">
+                    Для применения файла .dt введите учетные данные 1С
+                  </p>
+                  <AppInput
+                    v-model="applyForm.adminUser"
+                    label="Пользователь 1С"
+                    placeholder="Admin"
+                    icon="mdi-account"
+                    class="mb-3"
+                  />
+                  <AppInput
+                    v-model="applyForm.adminPass"
+                    type="password"
+                    label="Пароль 1С"
+                    placeholder="••••••"
+                    icon="mdi-lock"
+                  />
+                </v-card-text>
+                <v-card-actions class="pa-4">
+                  <v-spacer />
+                  <v-btn variant="outlined" @click="showApplyDialog = false">
+                    Отмена
+                  </v-btn>
+                  <v-btn
+                    color="primary"
+                    :loading="isApplying"
+                    @click="confirmApply"
+                  >
+                    Применить
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
           </template>
         </v-col>
       </v-row>
@@ -134,6 +224,8 @@ import { useBasesStore } from '@/stores/bases'
 import BaseStatusBadge from '@/components/base/BaseStatusBadge.vue'
 import BaseLogsView from '@/components/base/BaseLogsView.vue'
 import DtFilesList from '@/components/base/DtFilesList.vue'
+import FileUploader from '@/components/base/FileUploader.vue'
+import AppInput from '@/components/ui/AppInput.vue'
 
 const route = useRoute()
 const basesStore = useBasesStore()
@@ -143,6 +235,15 @@ const base = computed(() => basesStore.currentBase)
 const dtFiles = computed(() => basesStore.dtFiles)
 const isPolling = computed(() => basesStore.isPolling)
 const applyingId = ref<number | null>(null)
+
+// Dialog states
+const showUploadDialog = ref(false)
+const showApplyDialog = ref(false)
+const selectedDtFile = ref<File | null>(null)
+const isUploading = ref(false)
+const isApplying = ref(false)
+const applyForm = ref({ adminUser: '', adminPass: '' })
+const pendingApplyId = ref<number | null>(null)
 
 const statusColor: Record<string, string> = {
   ready: 'success',
@@ -169,10 +270,58 @@ watch(baseId, async (newId) => {
   basesStore.startPollingForBase(newId)
 })
 
-async function handleApplyFile(id: number) {
-  applyingId.value = id
+async function handleUploadDt() {
+  if (!selectedDtFile.value) return
+  
+  isUploading.value = true
   try {
-    await basesStore.applyDtFile(baseId.value, id)
+    await basesStore.uploadDt(baseId.value, selectedDtFile.value)
+    await basesStore.fetchDtFiles(baseId.value)
+    showUploadDialog.value = false
+    selectedDtFile.value = null
+  } catch (e) {
+    // Ошибка уже установлена в store
+  } finally {
+    isUploading.value = false
+  }
+}
+
+async function handleApplyFile(id: number) {
+  // Проверяем нужно ли запрашивать логин/пароль
+  // IB_USER_PASS_REQUIRED=true И is_empty=false => показываем диалог
+  const ibUserPassRequired = import.meta.env.VITE_IB_USER_PASS_REQUIRED === 'true'
+  const isEmpty = base.value?.isEmpty ?? true
+  
+  if (ibUserPassRequired && !isEmpty) {
+    // Показываем диалог ввода логина/пароля
+    pendingApplyId.value = id
+    applyForm.value = { adminUser: '', adminPass: '' }
+    showApplyDialog.value = true
+  } else {
+    // Сразу применяем без логина/пароля (не передаем их вообще)
+    await doApply(id, undefined, undefined)
+  }
+}
+
+async function confirmApply() {
+  if (!pendingApplyId.value) return
+  // Передаем логин/пароль только если они были введены
+  const data = {
+    adminUser: applyForm.value.adminUser || undefined,
+    adminPass: applyForm.value.adminPass || undefined,
+  }
+  await doApply(pendingApplyId.value, data.adminUser, data.adminPass)
+}
+
+async function doApply(id: number, adminUser?: string, adminPass?: string) {
+  applyingId.value = id
+  isApplying.value = true
+  showApplyDialog.value = false
+  
+  try {
+    // Передаем логин/пароль только если оба указаны
+    const applyData = (adminUser && adminPass) ? { adminUser, adminPass } : undefined
+    await basesStore.applyDtFile(baseId.value, id, applyData)
     // Обновляем список файлов после применения
     setTimeout(async () => {
       await basesStore.fetchDtFiles(baseId.value)
@@ -180,6 +329,8 @@ async function handleApplyFile(id: number) {
     }, 2000)
   } catch (e) {
     applyingId.value = null
+  } finally {
+    isApplying.value = false
   }
 }
 
