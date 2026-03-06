@@ -1,12 +1,5 @@
 <template>
   <v-card elevation="2">
-    <v-card-title class="pa-4">
-      <div class="d-flex align-center ga-2">
-        <v-icon icon="mdi-file-multiple" />
-        <span class="text-subtitle-1 font-weight-bold">Файлы .dt (версии)</span>
-      </div>
-    </v-card-title>
-
     <v-card-text class="pa-0">
       <v-list v-if="files.length > 0" lines="three" class="pa-0">
         <v-list-item

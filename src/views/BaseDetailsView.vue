@@ -121,6 +121,7 @@
             <v-card elevation="2">
               <v-card-title class="pa-4">
                 <div class="d-flex align-center justify-space-between w-100">
+                  <v-icon icon="mdi-file-multiple" />
                   <span class="text-subtitle-1 font-weight-bold">Файлы .dt (версии)</span>
                   <v-btn
                     color="primary"
@@ -128,7 +129,7 @@
                     size="small"
                     @click="showUploadDialog = true"
                   >
-                    + DT
+                    DT
                   </v-btn>
                 </div>
               </v-card-title>
