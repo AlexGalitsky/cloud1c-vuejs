@@ -1,151 +1,85 @@
 <template>
-  <div class="min-h-screen p-8 bg-gray-100">
-    <div class="max-w-7xl mx-auto">
-      <!-- Header -->
-      <AppCard class="mb-8">
-        <template #header>
-          <div class="w-14 h-14 rounded-full bg-[#4F46E5] flex items-center justify-center shadow-lg">
-            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-          </div>
-          <div>
-            <h1 class="text-2xl font-bold text-[#4B5563]">Облачная 1С</h1>
-            <p class="text-sm text-[#6B7280]">Управление базами данных</p>
-          </div>
-        </template>
+  <div class="min-vh-100 bg-background">
+    <v-container fluid class="pa-8">
+      <v-row justify="center">
+        <v-col cols="12" max-width="1400">
+          <v-card class="mb-6" elevation="2">
+            <v-card-text class="pa-6">
+              <div class="d-flex flex-column flex-md-row justify-space-between align-center ga-4">
+                <div class="d-flex align-center ga-4">
+                  <v-avatar color="primary" size="56">
+                    <v-icon icon="mdi-database" size="28" color="white" />
+                  </v-avatar>
+                  <div>
+                    <h1 class="text-h5 font-weight-bold">Облачная 1С</h1>
+                    <p class="text-subtitle-2 text-medium-emphasis mb-0">Управление базами данных</p>
+                  </div>
+                </div>
+                <div class="d-flex ga-2 flex-wrap">
+                  <v-btn color="primary" prepend-icon="mdi-plus" @click="showModal = true">
+                    Новая база
+                  </v-btn>
+                  <v-btn variant="outlined" prepend-icon="mdi-logout" @click="logout">
+                    Выйти
+                  </v-btn>
+                </div>
+              </div>
+            </v-card-text>
+          </v-card>
 
-        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-          <div class="text-sm font-light text-[#6B7280]">
-            Управление базами 1С
-          </div>
-          <div class="flex gap-3 w-full md:w-auto">
-            <AppButton variant="primary" class="flex-1 md:flex-none" @click="showModal = true">
-              <template #icon>
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M5 12h14"></path>
-                  <path d="M12 5v14"></path>
-                </svg>
-              </template>
-              Новая база
-            </AppButton>
-            <AppButton variant="outline" class="flex-1 md:flex-none" @click="logout">
-              <template #icon>
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                  <polyline points="16 17 21 12 16 7"></polyline>
-                  <line x1="21" x2="9" y1="12" y2="12"></line>
-                </svg>
-              </template>
-              Выйти
-            </AppButton>
-          </div>
-        </div>
-      </AppCard>
+          <v-row class="mb-6">
+            <v-col cols="12" sm="6" md="3" v-for="(stat, index) in stats" :key="index">
+              <v-card elevation="2">
+                <v-card-text class="pa-5">
+                  <div class="d-flex justify-space-between align-center">
+                    <div>
+                      <p class="text-subtitle-2 text-medium-emphasis mb-1">{{ stat.title }}</p>
+                      <p :class="`text-h4 font-weight-bold ${stat.color}`">{{ stat.value }}</p>
+                    </div>
+                    <v-avatar :color="stat.bg" size="56">
+                      <v-icon :color="stat.iconColor" :icon="stat.icon" size="28" />
+                    </v-avatar>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
 
-      <!-- Stats -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <AppCard class="!p-5">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm text-[#6B7280] font-light">Всего баз</p>
-              <p class="text-3xl font-bold text-[#4B5563] mt-1">{{ basesStore.totalCount }}</p>
-            </div>
-            <div class="w-14 h-14 rounded-full bg-purple-100 flex items-center justify-center">
-              <svg class="w-7 h-7 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
-              </svg>
-            </div>
-          </div>
-        </AppCard>
+          <v-card v-if="basesStore.isLoading" class="pa-12 text-center" elevation="2">
+            <v-progress-circular indeterminate color="primary" size="64" class="mb-4" />
+            <p class="text-body-1 text-medium-emphasis">Загрузка баз...</p>
+          </v-card>
 
-        <AppCard class="!p-5">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm text-[#6B7280] font-light">Готовы</p>
-              <p class="text-3xl font-bold text-green-600 mt-1">{{ basesStore.readyCount }}</p>
-            </div>
-            <div class="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
-              <svg class="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-          </div>
-        </AppCard>
+          <v-card v-else-if="basesStore.bases.length === 0" class="pa-12 text-center" elevation="2">
+            <v-avatar color="grey-lighten-3" size="80" class="mb-6">
+              <v-icon icon="mdi-database-off" size="40" color="grey" />
+            </v-avatar>
+            <h3 class="text-h6 font-weight-bold mb-2">Нет созданных баз</h3>
+            <p class="text-body-2 text-medium-emphasis mb-6">Создайте первую базу 1С для начала работы</p>
+            <v-btn color="primary" prepend-icon="mdi-plus" @click="showModal = true">
+              Создать базу
+            </v-btn>
+          </v-card>
 
-        <AppCard class="!p-5">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm text-[#6B7280] font-light">В процессе</p>
-              <p class="text-3xl font-bold text-yellow-600 mt-1">{{ basesStore.processingCount }}</p>
-            </div>
-            <div class="w-14 h-14 rounded-full bg-yellow-100 flex items-center justify-center">
-              <svg class="w-7 h-7 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-          </div>
-        </AppCard>
+          <v-row v-else>
+            <v-col
+              v-for="base in basesStore.bases"
+              :key="base.id"
+              cols="12"
+              md="6"
+              lg="4"
+            >
+              <BaseCard
+                :base="base"
+                @edit="openEditModal(base)"
+                @delete="handleDelete(base.id)"
+              />
+            </v-col>
+          </v-row>
+        </v-col>
+      </v-row>
+    </v-container>
 
-        <AppCard class="!p-5">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm text-[#6B7280] font-light">Ошибки</p>
-              <p class="text-3xl font-bold text-red-600 mt-1">{{ basesStore.errorCount }}</p>
-            </div>
-            <div class="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center">
-              <svg class="w-7 h-7 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-          </div>
-        </AppCard>
-      </div>
-
-      <!-- Loading state -->
-      <AppCard v-if="basesStore.isLoading" class="p-12 text-center">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-100 mb-4">
-          <svg class="animate-spin w-8 h-8 text-purple-600" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-        </div>
-        <p class="text-[#6B7280] font-medium">Загрузка баз...</p>
-      </AppCard>
-
-      <!-- Empty state -->
-      <AppCard v-else-if="basesStore.bases.length === 0" class="p-12 text-center">
-        <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-gray-100 flex items-center justify-center">
-          <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-          </svg>
-        </div>
-        <h3 class="text-xl font-bold text-[#4B5563] mb-2">Нет созданных баз</h3>
-        <p class="text-[#6B7280] mb-6">Создайте первую базу 1С для начала работы</p>
-        <AppButton variant="primary" class="max-w-xs mx-auto" @click="showModal = true">
-          <template #icon>
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M5 12h14"></path>
-              <path d="M12 5v14"></path>
-            </svg>
-          </template>
-          Создать базу
-        </AppButton>
-      </AppCard>
-
-      <!-- Bases grid -->
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <BaseCard
-          v-for="base in basesStore.bases"
-          :key="base.id"
-          :base="base"
-          @edit="openEditModal(base)"
-          @delete="handleDelete(base.id)"
-        />
-      </div>
-    </div>
-
-    <!-- Modal -->
     <BaseFormModal
       v-model="showModal"
       :base="editingBase"
@@ -156,63 +90,68 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useBasesStore } from '@/stores/bases';
-import { useAuthStore } from '@/stores/auth';
-import AppCard from '@/components/ui/AppCard.vue';
-import AppButton from '@/components/ui/AppButton.vue';
-import BaseCard from '@/components/base/BaseCard.vue';
-import BaseFormModal from '@/components/base/BaseFormModal.vue';
-import type { Base1C, CreateBaseRequest } from '@/api/bases';
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useBasesStore } from '@/stores/bases'
+import { useAuthStore } from '@/stores/auth'
+import BaseCard from '@/components/base/BaseCard.vue'
+import BaseFormModal from '@/components/base/BaseFormModal.vue'
+import type { Base1C, CreateBaseRequest } from '@/api/bases'
 
-const router = useRouter();
-const basesStore = useBasesStore();
-const authStore = useAuthStore();
+const router = useRouter()
+const basesStore = useBasesStore()
+const authStore = useAuthStore()
 
-const showModal = ref(false);
-const editingBase = ref<Base1C | null>(null);
+const showModal = ref(false)
+const editingBase = ref<Base1C | null>(null)
+
+const stats = computed(() => [
+  { title: 'Всего баз', value: basesStore.totalCount, color: 'text-primary', bg: 'purple-lighten-4', icon: 'mdi-database', iconColor: 'primary' },
+  { title: 'Готовы', value: basesStore.readyCount, color: 'text-success', bg: 'green-lighten-4', icon: 'mdi-check-circle', iconColor: 'success' },
+  { title: 'В процессе', value: basesStore.processingCount, color: 'text-warning', bg: 'amber-lighten-4', icon: 'mdi-progress-clock', iconColor: 'warning' },
+  { title: 'Ошибки', value: basesStore.errorCount, color: 'text-error', bg: 'red-lighten-4', icon: 'mdi-alert-circle', iconColor: 'error' },
+])
 
 onMounted(() => {
-  loadBases();
-  basesStore.startPolling();
-});
+  loadBases()
+  basesStore.startPolling()
+})
 
 onUnmounted(() => {
-  basesStore.stopPolling();
-});
+  basesStore.stopPolling()
+})
 
 async function loadBases() {
-  await basesStore.fetchBases();
+  await basesStore.fetchBases()
 }
 
 function openEditModal(base: Base1C) {
-  editingBase.value = base;
-  showModal.value = true;
+  editingBase.value = base
+  showModal.value = true
 }
 
 function closeModal() {
-  showModal.value = false;
-  editingBase.value = null;
+  showModal.value = false
+  editingBase.value = null
 }
 
 async function handleSubmit(data: CreateBaseRequest, dtFile?: File) {
   if (editingBase.value) {
-    await basesStore.updateBase(editingBase.value.id, data, dtFile);
+    await basesStore.updateBase(editingBase.value.id, data, dtFile)
   } else {
-    await basesStore.createBase(data, dtFile);
+    await basesStore.createBase(data, dtFile)
   }
-  closeModal();
+  closeModal()
 }
 
 async function handleDelete(id: number) {
   if (confirm('Вы уверены, что хотите удалить эту базу?')) {
-    await basesStore.deleteBase(id);
+    await basesStore.deleteBase(id)
   }
 }
 
 function logout() {
-  authStore.logout();
-  router.push('/login');
+  authStore.logout()
+  router.push('/login')
 }
 </script>
