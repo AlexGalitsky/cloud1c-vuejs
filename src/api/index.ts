@@ -18,4 +18,21 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Обработка 401 ошибок
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Токен недействителен, удаляем его и перенаправляем на логин
+      localStorage.removeItem('token');
+      
+      // Если мы не на странице логина, перенаправляем
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;
