@@ -18,7 +18,7 @@
                 </div>
                 <div class="d-flex ga-2 flex-wrap">
                   <v-btn
-                    v-if="base"
+                    v-if="base && !base.isDeleted"
                     variant="outlined"
                     prepend-icon="mdi-pencil"
                     :to="`/bases/${base.id}/edit`"
@@ -26,13 +26,33 @@
                     Редактировать
                   </v-btn>
                   <v-btn
-                    v-if="base"
+                    v-if="base && !base.isDeleted"
                     color="success"
                     prepend-icon="mdi-cloud-upload"
                     :loading="isPublishing"
                     @click="handlePublish"
                   >
                     Опубликовать
+                  </v-btn>
+                  <v-btn
+                    v-if="base && !base.isDeleted"
+                    color="error"
+                    variant="outlined"
+                    prepend-icon="mdi-delete"
+                    :loading="isDeleting"
+                    @click="handleDelete"
+                  >
+                    Удалить
+                  </v-btn>
+                  <v-btn
+                    v-if="base && !base.isDeleted"
+                    color="primary"
+                    variant="tonal"
+                    prepend-icon="mdi-open-in-new"
+                    :href="webBaseUrl + base.name"
+                    target="_blank"
+                  >
+                    Открыть базу
                   </v-btn>
                 </div>
               </div>
@@ -224,7 +244,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useBasesStore } from '@/stores/bases'
 import BaseStatusBadge from '@/components/base/BaseStatusBadge.vue'
 import BaseLogsView from '@/components/base/BaseLogsView.vue'
@@ -233,6 +253,7 @@ import FileUploader from '@/components/base/FileUploader.vue'
 import AppInput from '@/components/ui/AppInput.vue'
 
 const route = useRoute()
+const router = useRouter()
 const basesStore = useBasesStore()
 
 const baseId = computed(() => Number(route.params.id))
@@ -249,8 +270,11 @@ const selectedDtFile = ref<File | null>(null)
 const isUploading = ref(false)
 const isApplying = ref(false)
 const isPublishing = ref(false)
+const isDeleting = ref(false)
 const applyForm = ref({ adminUser: '', adminPass: '' })
 const pendingApplyId = ref<number | null>(null)
+
+const webBaseUrl = import.meta.env.VITE_CLUSTER_WEB_URL || 'http://192.168.1.104/'
 
 const statusColor: Record<string, string> = {
   ready: 'success',
@@ -359,6 +383,28 @@ async function handlePublish() {
     // Ошибка уже установлена в store
   } finally {
     isPublishing.value = false
+  }
+}
+
+async function handleDelete() {
+  const isEmpty = base.value?.isEmpty ?? true
+  
+  let confirmMessage = 'Вы уверены, что хотите удалить эту базу?'
+  if (!isEmpty) {
+    confirmMessage = 'База активна и содержит данные!\n\nБудут удалены:\n- База из кластера 1С\n- База данных PostgreSQL\n- Все файлы .dt\n- Публикация на веб-сервере\n\nПродолжить?'
+  }
+  
+  if (confirm(confirmMessage)) {
+    isDeleting.value = true
+    try {
+      await basesStore.deleteBase(baseId.value)
+      // После удаления перенаправляем на dashboard
+      router.push('/dashboard')
+    } catch (e) {
+      // Ошибка уже установлена в store
+    } finally {
+      isDeleting.value = false
+    }
   }
 }
 </script>

@@ -1,11 +1,16 @@
 <template>
-  <v-card class="hover-elevation cursor-pointer" @click="$emit('click')">
+  <v-card 
+    class="hover-elevation cursor-pointer" 
+    :class="{ 'opacity-50 pointer-events-none': base.isDeleted }"
+    @click="!base.isDeleted && $emit('click')"
+  >
     <v-card-text class="pa-6">
       <div class="d-flex justify-space-between align-start mb-4">
         <div class="d-flex align-center ga-3">
           <v-avatar :color="statusColor[base.status]" size="48">
             <v-icon v-if="base.status === 'ready'" icon="mdi-check-circle" />
             <v-icon v-else-if="base.status === 'processing'" icon="mdi-progress-clock" class="animate-spin" />
+            <v-icon v-else-if="base.status === 'deleted'" icon="mdi-delete-clock" class="animate-spin" />
             <v-icon v-else icon="mdi-alert-circle" />
           </v-avatar>
           <div>
@@ -31,7 +36,7 @@
       <BaseLogsView :log="base.lastLog" :status="base.status" class="mb-4" />
 
       <v-divider class="mb-4" />
-      <div class="d-flex ga-2 flex-nowrap">
+      <div v-if="!base.isDeleted" class="d-flex ga-2 flex-nowrap">
         <v-btn variant="tonal" size="small" prepend-icon="mdi-pencil" @click.stop="$emit('edit')">
           Изменить
         </v-btn>
@@ -74,6 +79,14 @@ const statusColor: Record<Base1C['status'] | 'deleted', string> = {
 
 .cursor-pointer {
   cursor: pointer;
+}
+
+.opacity-50 {
+  opacity: 0.5;
+}
+
+.pointer-events-none {
+  pointer-events: none;
 }
 
 .animate-spin {
