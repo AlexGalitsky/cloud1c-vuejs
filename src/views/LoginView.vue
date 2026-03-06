@@ -47,6 +47,18 @@
           {{ error }}
         </v-alert>
 
+        <v-alert
+          v-if="pendingNotice"
+          type="warning"
+          variant="tonal"
+          density="compact"
+          class="mb-4"
+          border="start"
+        >
+          <strong>Учетная запись ожидает подтверждения.</strong><br>
+          Обратитесь к администратору для активации аккаунта.
+        </v-alert>
+
         <div class="text-center text-body-2 text-medium-emphasis">
           Нет аккаунта?
           <router-link to="/register" class="text-primary font-weight-medium text-decoration-none">
@@ -59,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import AppInput from '@/components/ui/AppInput.vue'
@@ -71,13 +83,20 @@ const email = ref('')
 const password = ref('')
 const isLoading = ref(false)
 const error = ref<string | null>(null)
+const pendingNotice = ref(false)
 
 async function handleSubmit() {
   isLoading.value = true
   error.value = null
+  pendingNotice.value = false
   try {
-    await authStore.login({ email: email.value, password: password.value })
-    router.push('/dashboard')
+    const response = await authStore.login({ email: email.value, password: password.value })
+    if (response.user.status === 'pending') {
+      pendingNotice.value = true
+      authStore.logout()
+    } else {
+      router.push('/dashboard')
+    }
   } catch (e: any) {
     error.value = authStore.error
   } finally {

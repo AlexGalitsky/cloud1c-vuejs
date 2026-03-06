@@ -47,6 +47,19 @@
           {{ error }}
         </v-alert>
 
+        <v-alert
+          v-if="registrationSuccess"
+          type="success"
+          variant="tonal"
+          density="comfortable"
+          class="mb-4"
+          border="start"
+        >
+          <strong>Регистрация успешна!</strong><br>
+          Ваша учетная запись ожидает подтверждения администратором.<br>
+          После подтверждения вы сможете войти в систему.
+        </v-alert>
+
         <div class="text-center text-body-2 text-medium-emphasis">
           Уже есть аккаунт?
           <router-link to="/login" class="text-success font-weight-medium text-decoration-none">
@@ -71,13 +84,16 @@ const email = ref('')
 const password = ref('')
 const isLoading = ref(false)
 const error = ref<string | null>(null)
+const registrationSuccess = ref(false)
 
 async function handleSubmit() {
   isLoading.value = true
   error.value = null
+  registrationSuccess.value = false
   try {
     await authStore.register({ email: email.value, password: password.value })
-    router.push('/dashboard')
+    registrationSuccess.value = true
+    authStore.logout()
   } catch (e: any) {
     error.value = authStore.error
   } finally {

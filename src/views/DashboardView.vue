@@ -16,17 +16,62 @@
                     <p class="text-subtitle-2 text-medium-emphasis mb-0">Управление базами данных</p>
                   </div>
                 </div>
-                <div class="d-flex ga-2 flex-wrap">
-                  <v-btn color="primary" prepend-icon="mdi-plus" to="/bases/create">
+                <div class="d-flex ga-2 flex-wrap align-center">
+                  <!-- Информация о пользователе -->
+                  <v-menu>
+                    <template #activator="{ props }">
+                      <v-btn variant="outlined" v-bind="props">
+                        <v-icon start>mdi-account</v-icon>
+                        {{ authStore.user?.email }}
+                        <v-chip v-if="authStore.user?.status === 'pending'" color="warning" size="x-small" class="ml-2">
+                          Ожидает
+                        </v-chip>
+                        <v-chip v-if="authStore.isAdmin" color="error" size="x-small" class="ml-2">
+                          Админ
+                        </v-chip>
+                        <v-icon end>mdi-chevron-down</v-icon>
+                      </v-btn>
+                    </template>
+                    <v-list>
+                      <v-list-item to="/profile" prepend-icon="mdi-account">
+                        <v-list-item-title>Профиль</v-list-item-title>
+                      </v-list-item>
+                      <v-list-item
+                        v-if="authStore.isAdmin"
+                        to="/admin"
+                        prepend-icon="mdi-account-group"
+                      >
+                        <v-list-item-title>Пользователи</v-list-item-title>
+                      </v-list-item>
+                      <v-divider />
+                      <v-list-item @click="logout" prepend-icon="mdi-logout">
+                        <v-list-item-title>Выйти</v-list-item-title>
+                      </v-list-item>
+                    </v-list>
+                  </v-menu>
+                  
+                  <v-btn v-if="!authStore.isPending" color="primary" prepend-icon="mdi-plus" to="/bases/create">
                     Новая база
-                  </v-btn>
-                  <v-btn variant="outlined" prepend-icon="mdi-logout" @click="logout">
-                    Выйти
                   </v-btn>
                 </div>
               </div>
             </v-card-text>
           </v-card>
+
+          <!-- Alert для ожидающих подтверждения -->
+          <v-alert
+            v-if="authStore.isPending"
+            type="warning"
+            variant="tonal"
+            class="mb-6"
+            border="start"
+            density="comfortable"
+          >
+            <div class="text-body-1">
+              <strong>Ваша учетная запись ожидает подтверждения.</strong><br>
+              После подтверждения администратором вы сможете создавать и управлять базами 1С.
+            </div>
+          </v-alert>
 
           <!-- Stats -->
           <v-row class="mb-6">
@@ -59,8 +104,15 @@
               <v-icon icon="mdi-database-off" size="40" color="grey" />
             </v-avatar>
             <h3 class="text-h6 font-weight-bold mb-2">Нет созданных баз</h3>
-            <p class="text-body-2 text-medium-emphasis mb-6">Создайте первую базу 1С для начала работы</p>
-            <v-btn color="primary" prepend-icon="mdi-plus" to="/bases/create">
+            <p class="text-body-2 text-medium-emphasis mb-6">
+              {{ authStore.isPending ? 'Дождитесь подтверждения администратора' : 'Создайте первую базу 1С для начала работы' }}
+            </p>
+            <v-btn
+              v-if="!authStore.isPending"
+              color="primary"
+              prepend-icon="mdi-plus"
+              to="/bases/create"
+            >
               Создать базу
             </v-btn>
           </v-card>
