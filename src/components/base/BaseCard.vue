@@ -34,16 +34,9 @@
       </div>
 
       <BaseLogsView :log="base.lastLog" :status="base.status" class="mb-4" />
-
-      <v-divider class="mb-4" />
-      <div v-if="!base.isDeleted" class="d-flex ga-2 flex-nowrap">
-        <v-btn variant="tonal" size="small" prepend-icon="mdi-pencil" @click.stop="$emit('edit')">
-          Изменить
-        </v-btn>
-        <v-btn color="error" variant="tonal" size="small" prepend-icon="mdi-delete" @click.stop="$emit('delete')">
-          Удалить
-        </v-btn>
-      </div>
+      <v-alert v-if="base.isDeleted" type="warning" variant="tonal" density="compact">
+        База в процессе удаления
+      </v-alert>
     </v-card-text>
   </v-card>
 </template>

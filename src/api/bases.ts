@@ -18,6 +18,7 @@ export interface Base1C {
   description?: string;
   isEmpty: boolean;
   isDeleted: boolean;
+  isPublished: boolean;
   clusterGuid?: string;
 }
 
@@ -31,6 +32,7 @@ export interface DtFile {
   createdAt: string;
   lastAppliedAt: string | null;
   applied: boolean;
+  comment?: string;
 }
 
 export interface CreateBaseRequest {
@@ -45,6 +47,7 @@ export interface UpdateBaseRequest {
 export interface UploadDtRequest {
   adminUser?: string;
   adminPass?: string;
+  comment?: string;
 }
 
 export interface ApplyDtRequest {
@@ -110,5 +113,10 @@ export const dtFilesApi = {
 
   apply: async (baseId: number, id: number, data?: ApplyDtRequest): Promise<void> => {
     await api.post(`/bases/${baseId}/dt-files/${id}/apply`, data);
+  },
+
+  update: async (baseId: number, id: number, data: { comment?: string }): Promise<DtFile> => {
+    const response = await api.patch<DtFile>(`/bases/${baseId}/dt-files/${id}`, data);
+    return response.data;
   },
 };

@@ -75,6 +75,9 @@ export const useBasesStore = defineStore('bases', () => {
     if (data?.adminPass) {
       formData.append('adminPass', data.adminPass);
     }
+    if (data?.comment) {
+      formData.append('comment', data.comment);
+    }
 
     try {
       return await basesApi.uploadDt(id, formData);

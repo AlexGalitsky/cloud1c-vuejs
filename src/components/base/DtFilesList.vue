@@ -32,6 +32,10 @@
                 Применён: {{ formatDate(file.lastAppliedAt) }}
               </span>
             </div>
+            <div v-if="file.comment" class="mt-2">
+              <v-icon icon="mdi-comment-text" size="12" class="me-1" />
+              <span class="text-caption">{{ file.comment }}</span>
+            </div>
           </v-list-item-subtitle>
 
           <template v-slot:append>
@@ -40,6 +44,17 @@
                 <v-icon icon="mdi-check" size="12" class="me-1" />
                 Актуальный
               </v-chip>
+
+              <v-btn
+                icon="mdi-pencil"
+                size="small"
+                variant="tonal"
+                color="primary"
+                :disabled="applyingId !== null"
+                @click="$emit('edit', file)"
+              >
+                <v-icon icon="mdi-pencil" size="18" />
+              </v-btn>
 
               <v-btn
                 icon="mdi-play"
@@ -88,6 +103,7 @@ defineProps<{
 defineEmits<{
   apply: [id: number]
   delete: [id: number]
+  edit: [file: DtFile]
 }>()
 
 function formatDate(dateString: string): string {

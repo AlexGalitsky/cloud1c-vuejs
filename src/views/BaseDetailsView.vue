@@ -51,6 +51,7 @@
                     prepend-icon="mdi-open-in-new"
                     :href="webBaseUrl + base.name"
                     target="_blank"
+                    :disabled="!base.isPublished"
                   >
                     Открыть базу
                   </v-btn>
@@ -159,6 +160,7 @@
                   :applying-id="applyingId"
                   @apply="handleApplyFile"
                   @delete="handleDeleteFile"
+                  @edit="handleEditFile"
                 />
               </v-card-text>
             </v-card>
@@ -177,6 +179,14 @@
                     placeholder="Перетащите файл .dt сюда"
                     hint="или кликните для выбора"
                   />
+                  <AppInput
+                    v-model="uploadForm.comment"
+                    label="Комментарий (необязательно)"
+                    placeholder="Описание версии"
+                    icon="mdi-comment-text"
+                    class="mt-4"
+                    :rules="[]"
+                  />
                 </v-card-text>
                 <v-card-actions class="pa-4">
                   <v-spacer />
@@ -190,6 +200,45 @@
                     @click="handleUploadDt"
                   >
                     Загрузить
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+
+            <!-- Edit DT Dialog -->
+            <v-dialog v-model="showEditDialog" max-width="500">
+              <v-card>
+                <v-card-title class="pa-4">
+                  <span class="text-h6 font-weight-bold">Редактировать файл .dt</span>
+                </v-card-title>
+                <v-card-text class="pa-4">
+                  <p class="text-body-2 mb-3">{{ editingFile?.originalName }}</p>
+                  <FileUploader
+                    v-model="selectedDtFile"
+                    label="Новый файл .dt (необязательно)"
+                    accept=".dt"
+                    placeholder="Оставьте пустым чтобы не менять файл"
+                  />
+                  <AppInput
+                    v-model="uploadForm.comment"
+                    label="Комментарий"
+                    placeholder="Описание версии"
+                    icon="mdi-comment-text"
+                    class="mt-4"
+                    :rules="[]"
+                  />
+                </v-card-text>
+                <v-card-actions class="pa-4">
+                  <v-spacer />
+                  <v-btn variant="outlined" @click="showEditDialog = false">
+                    Отмена
+                  </v-btn>
+                  <v-btn
+                    color="primary"
+                    :loading="isUploading"
+                    @click="handleEditDt"
+                  >
+                    Сохранить
                   </v-btn>
                 </v-card-actions>
               </v-card>
@@ -246,6 +295,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBasesStore } from '@/stores/bases'
+import { dtFilesApi, type DtFile } from '@/api/bases'
 import BaseStatusBadge from '@/components/base/BaseStatusBadge.vue'
 import BaseLogsView from '@/components/base/BaseLogsView.vue'
 import DtFilesList from '@/components/base/DtFilesList.vue'
@@ -265,14 +315,16 @@ const applyingId = ref<number | null>(null)
 // Dialog states
 const showUploadDialog = ref(false)
 const showApplyDialog = ref(false)
-const showPublishDialog = ref(false)
+const showEditDialog = ref(false)
 const selectedDtFile = ref<File | null>(null)
 const isUploading = ref(false)
 const isApplying = ref(false)
 const isPublishing = ref(false)
 const isDeleting = ref(false)
 const applyForm = ref({ adminUser: '', adminPass: '' })
+const uploadForm = ref({ comment: '' })
 const pendingApplyId = ref<number | null>(null)
+const editingFile = ref<DtFile | null>(null)
 
 const webBaseUrl = import.meta.env.VITE_CLUSTER_WEB_URL || 'http://192.168.1.104/'
 
@@ -306,10 +358,43 @@ async function handleUploadDt() {
   
   isUploading.value = true
   try {
-    await basesStore.uploadDt(baseId.value, selectedDtFile.value)
+    await basesStore.uploadDt(baseId.value, selectedDtFile.value, uploadForm.value)
     await basesStore.fetchDtFiles(baseId.value)
     showUploadDialog.value = false
     selectedDtFile.value = null
+    uploadForm.value.comment = ''
+  } catch (e) {
+    // Ошибка уже установлена в store
+  } finally {
+    isUploading.value = false
+  }
+}
+
+function handleEditFile(file: DtFile) {
+  editingFile.value = file
+  uploadForm.value.comment = file.comment || ''
+  selectedDtFile.value = null
+  showEditDialog.value = true
+}
+
+async function handleEditDt() {
+  if (!editingFile.value) return
+  
+  isUploading.value = true
+  try {
+    // Обновляем комментарий
+    await dtFilesApi.update(editingFile.value.baseId, editingFile.value.id, uploadForm.value)
+    
+    // Если выбран новый файл, загружаем его
+    if (selectedDtFile.value) {
+      await basesStore.uploadDt(baseId.value, selectedDtFile.value, uploadForm.value)
+    }
+    
+    await basesStore.fetchDtFiles(baseId.value)
+    showEditDialog.value = false
+    selectedDtFile.value = null
+    uploadForm.value.comment = ''
+    editingFile.value = null
   } catch (e) {
     // Ошибка уже установлена в store
   } finally {
@@ -379,6 +464,8 @@ async function handlePublish() {
     await basesStore.publishBase(baseId.value)
     // Обновляем информацию о базе после публикации
     await basesStore.fetchBaseById(baseId.value)
+    // Обновляем список баз в dashboard чтобы кнопка стала активной
+    await basesStore.fetchBases()
   } catch (e) {
     // Ошибка уже установлена в store
   } finally {
