@@ -56,9 +56,15 @@ export const useBasesStore = defineStore('bases', () => {
     error.value = null;
     const formData = new FormData();
     formData.append('name', data.name);
-    formData.append('serverPath', data.serverPath);
-    formData.append('adminUser', data.adminUser);
-    formData.append('adminPass', data.adminPass);
+    if (data.description) {
+      formData.append('description', data.description);
+    }
+    if (data.adminUser) {
+      formData.append('adminUser', data.adminUser);
+    }
+    if (data.adminPass) {
+      formData.append('adminPass', data.adminPass);
+    }
     if (dtFile) {
       formData.append('dtFile', dtFile);
     }
@@ -76,10 +82,15 @@ export const useBasesStore = defineStore('bases', () => {
   async function updateBase(id: number, data: Partial<CreateBaseRequest>, dtFile?: File) {
     error.value = null;
     const formData = new FormData();
-    if (data.name) formData.append('name', data.name);
-    if (data.serverPath) formData.append('serverPath', data.serverPath);
-    if (data.adminUser) formData.append('adminUser', data.adminUser);
-    if (data.adminPass) formData.append('adminPass', data.adminPass);
+    if (data.description) {
+      formData.append('description', data.description);
+    }
+    if (data.adminUser) {
+      formData.append('adminUser', data.adminUser);
+    }
+    if (data.adminPass) {
+      formData.append('adminPass', data.adminPass);
+    }
     if (dtFile) {
       formData.append('dtFile', dtFile);
     }

@@ -12,67 +12,69 @@
             </v-card-title>
 
             <v-card-text class="pa-6">
-              <v-form @submit.prevent="handleSubmit" ref="formRef">
-                <AppInput
-                  v-model="form.name"
-                  label="Название базы"
-                  placeholder="Бухгалтерия"
-                  icon="mdi-text"
-                  :rules="[(v: string) => !!v || 'Введите название']"
-                  required
-                />
+              <v-alert type="warning" variant="tonal" density="compact" class="mb-4">
+                <strong>Внимание!</strong> Основные поля базы недоступны для редактирования
+              </v-alert>
 
-                <AppInput
-                  v-model="form.serverPath"
-                  label="Путь к серверу"
-                  placeholder="Server/Base"
-                  icon="mdi-server"
-                  :rules="[(v: string) => !!v || 'Введите путь']"
-                  required
-                />
+              <!-- Информация о базе -->
+              <div class="mb-6">
+                <div class="text-subtitle-2 text-medium-emphasis mb-1">Название базы</div>
+                <div class="text-body-1 mb-3">{{ base?.name }}</div>
 
-                <v-row>
-                  <v-col cols="6">
-                    <AppInput
-                      v-model="form.adminUser"
-                      label="Пользователь 1С"
-                      placeholder="Admin"
-                      icon="mdi-account"
-                      :rules="[(v: string) => !!v || 'Введите пользователя']"
-                      required
-                    />
-                  </v-col>
-                  <v-col cols="6">
-                    <AppInput
-                      v-model="form.adminPass"
-                      type="password"
-                      label="Пароль 1С"
-                      placeholder="••••••"
-                      icon="mdi-lock"
-                      :rules="[(v: string) => !!v || 'Введите пароль']"
-                      required
-                    />
-                  </v-col>
-                </v-row>
+                <div class="text-subtitle-2 text-medium-emphasis mb-1">Путь к серверу</div>
+                <div class="text-body-1 mb-3">{{ base?.serverPath }}</div>
+              </div>
 
-                <FileUploader
-                  v-model="selectedFile"
-                  label="Новый файл .dt (необязательно)"
-                  accept=".dt"
-                  placeholder="Перетащите файл .dt сюда"
-                  hint="Оставьте пустым, чтобы не менять файл"
-                />
+              <v-row>
+                <v-col cols="6">
+                  <AppInput
+                    v-model="form.adminUser"
+                    label="Пользователь 1С"
+                    placeholder="Admin"
+                    icon="mdi-account"
+                    :rules="[]"
+                    hint="Необязательно для первого восстановления"
+                  />
+                </v-col>
+                <v-col cols="6">
+                  <AppInput
+                    v-model="form.adminPass"
+                    type="password"
+                    label="Пароль 1С"
+                    placeholder="•••••• (оставьте пустым, чтобы не менять)"
+                    icon="mdi-lock"
+                    :rules="[]"
+                    hint="Необязательно для первого восстановления"
+                  />
+                </v-col>
+              </v-row>
 
-                <v-alert
-                  v-if="basesStore.error"
-                  type="error"
-                  variant="tonal"
-                  density="compact"
-                  class="mt-4"
-                >
-                  {{ basesStore.error }}
-                </v-alert>
-              </v-form>
+              <div class="text-subtitle-2 text-medium-emphasis mb-1 mt-4">Описание</div>
+              <AppInput
+                v-model="form.description"
+                label="Описание"
+                placeholder="Бухгалтерия предприятия"
+                icon="mdi-text-box"
+                :rules="[]"
+              />
+
+              <FileUploader
+                v-model="selectedFile"
+                label="Новый файл .dt (необязательно)"
+                accept=".dt"
+                placeholder="Перетащите файл .dt сюда"
+                hint="Оставьте пустым, чтобы не менять файл"
+              />
+
+              <v-alert
+                v-if="basesStore.error"
+                type="error"
+                variant="tonal"
+                density="compact"
+                class="mt-4"
+              >
+                {{ basesStore.error }}
+              </v-alert>
             </v-card-text>
 
             <v-card-actions class="pa-6 pt-0">
@@ -92,12 +94,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBasesStore } from '@/stores/bases'
+import type { Base1C, CreateBaseRequest } from '@/api/bases'
 import AppInput from '@/components/ui/AppInput.vue'
 import FileUploader from '@/components/base/FileUploader.vue'
-import type { CreateBaseRequest } from '@/api/bases'
 
 const route = useRoute()
 const router = useRouter()
@@ -105,10 +107,10 @@ const basesStore = useBasesStore()
 
 const formRef = ref<HTMLFormElement | null>(null)
 const baseId = ref(Number(route.params.id))
+const base = ref<Base1C | null>(null)
 
-const form = reactive<CreateBaseRequest>({
-  name: '',
-  serverPath: '',
+const form = reactive({
+  description: '',
   adminUser: '',
   adminPass: '',
 })
@@ -117,11 +119,11 @@ const selectedFile = ref<File | null>(null)
 const isSubmitting = ref(false)
 
 onMounted(async () => {
-  const base = await basesStore.fetchBaseById(baseId.value)
-  if (base) {
-    form.name = base.name
-    form.serverPath = base.serverPath
-    form.adminUser = base.adminUser
+  const fetchedBase = await basesStore.fetchBaseById(baseId.value)
+  if (fetchedBase) {
+    base.value = fetchedBase
+    form.description = fetchedBase.description || ''
+    form.adminUser = fetchedBase.adminUser || ''
     form.adminPass = '' // Пароль не загружаем из соображений безопасности
   }
 })
@@ -131,7 +133,16 @@ async function handleSubmit() {
 
   isSubmitting.value = true
   try {
-    await basesStore.updateBase(baseId.value, form, selectedFile.value || undefined)
+    // Отправляем adminUser/adminPass только если пароль был изменен
+    const updateData: Partial<CreateBaseRequest> = {
+      description: form.description,
+      adminUser: form.adminUser,
+    }
+    if (form.adminPass) {
+      updateData.adminPass = form.adminPass
+    }
+    
+    await basesStore.updateBase(baseId.value, updateData, selectedFile.value || undefined)
     router.push(`/bases/${baseId.value}`)
   } catch (e) {
     // Ошибка уже установлена в store

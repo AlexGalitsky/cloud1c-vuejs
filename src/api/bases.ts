@@ -10,10 +10,11 @@ export interface Base1C {
   id: number;
   name: string;
   serverPath: string;
-  adminUser: string;
+  adminUser?: string;
   status: BaseStatus;
   lastLog: string;
   ownerId: number;
+  description?: string;
 }
 
 export interface DtFile {
@@ -30,14 +31,13 @@ export interface DtFile {
 
 export interface CreateBaseRequest {
   name: string;
-  serverPath: string;
-  adminUser: string;
-  adminPass: string;
+  description?: string;
+  adminUser?: string;
+  adminPass?: string;
 }
 
 export interface UpdateBaseRequest {
-  name?: string;
-  serverPath?: string;
+  description?: string;
   adminUser?: string;
   adminPass?: string;
 }

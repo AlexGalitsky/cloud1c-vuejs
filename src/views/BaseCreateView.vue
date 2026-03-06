@@ -16,48 +16,53 @@
                 <AppInput
                   v-model="form.name"
                   label="Название базы"
-                  placeholder="Бухгалтерия"
+                  placeholder="MyBase"
                   icon="mdi-text"
-                  :rules="[(v: string) => !!v || 'Введите название']"
+                  :rules="[rules.required, rules.nameFormat]"
                   required
+                  hint="Только английские буквы и цифры, должно начинаться с буквы"
                 />
 
                 <AppInput
-                  v-model="form.serverPath"
-                  label="Путь к серверу"
-                  placeholder="Server/Base"
-                  icon="mdi-server"
-                  :rules="[(v: string) => !!v || 'Введите путь']"
-                  required
+                  v-model="form.description"
+                  label="Описание (необязательно)"
+                  placeholder="Бухгалтерия предприятия"
+                  icon="mdi-text-box"
+                  :rules="[]"
                 />
 
                 <v-row>
                   <v-col cols="6">
                     <AppInput
                       v-model="form.adminUser"
-                      label="Пользователь 1С"
+                      label="Пользователь 1С (необязательно)"
                       placeholder="Admin"
                       icon="mdi-account"
-                      :rules="[(v: string) => !!v || 'Введите пользователя']"
-                      required
+                      :rules="[]"
+                      hint="Можно указать после создания базы"
                     />
                   </v-col>
                   <v-col cols="6">
                     <AppInput
                       v-model="form.adminPass"
                       type="password"
-                      label="Пароль 1С"
+                      label="Пароль 1С (необязательно)"
                       placeholder="••••••"
                       icon="mdi-lock"
-                      :rules="[(v: string) => !!v || 'Введите пароль']"
-                      required
+                      :rules="[]"
+                      hint="Можно указать после создания базы"
                     />
                   </v-col>
                 </v-row>
 
+                <v-alert type="info" variant="tonal" density="compact" class="mb-4">
+                  <strong>Путь к серверу:</strong> будет сформирован автоматически<br>
+                  <span class="text-caption">{{ clusterAddress }}/{{ form.name || '...' }}</span>
+                </v-alert>
+
                 <FileUploader
                   v-model="selectedFile"
-                  label="Файл .dt"
+                  label="Файл .dt (необязательно)"
                   accept=".dt"
                   placeholder="Перетащите файл .dt сюда"
                   hint="или кликните для выбора"
@@ -92,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBasesStore } from '@/stores/bases'
 import AppInput from '@/components/ui/AppInput.vue'
@@ -106,13 +111,26 @@ const formRef = ref<HTMLFormElement | null>(null)
 
 const form = reactive<CreateBaseRequest>({
   name: '',
-  serverPath: '',
+  description: '',
   adminUser: '',
   adminPass: '',
 })
 
 const selectedFile = ref<File | null>(null)
 const isSubmitting = ref(false)
+
+const clusterAddress = computed(() => {
+  return import.meta.env.VITE_CLUSTER_ADDRESS || '192.168.1.104'
+})
+
+const rules = {
+  required: (v: string) => !!v || 'Обязательное поле',
+  nameFormat: (v: string) => {
+    if (!v) return true
+    const regex = /^[a-zA-Z][a-zA-Z0-9]*$/
+    return regex.test(v) || 'Название должно начинаться с английской буквы и содержать только английские буквы и цифры'
+  },
+}
 
 async function handleSubmit() {
   if (!formRef.value) return
