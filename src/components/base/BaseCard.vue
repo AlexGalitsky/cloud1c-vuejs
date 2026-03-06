@@ -58,10 +58,11 @@ defineEmits<{
   delete: []
 }>()
 
-const statusColor: Record<Base1C['status'], string> = {
+const statusColor: Record<Base1C['status'] | 'deleted', string> = {
   ready: 'success',
   processing: 'warning',
   error: 'error',
+  deleted: 'grey',
 }
 </script>
 

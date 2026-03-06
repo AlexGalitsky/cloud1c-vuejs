@@ -19,22 +19,25 @@ const props = withDefaults(defineProps<{
   showDot: true
 })
 
-const textMap: Record<BaseStatus, string> = {
+const textMap: Record<BaseStatus | 'deleted', string> = {
   ready: 'Готова к работе',
   processing: 'Обработка...',
   error: 'Ошибка',
+  deleted: 'На удалении...',
 }
 
-const chipColor: Record<BaseStatus, string> = {
+const chipColor: Record<BaseStatus | 'deleted', string> = {
   ready: 'success',
   processing: 'warning',
   error: 'error',
+  deleted: 'grey',
 }
 
-const dotColor: Record<BaseStatus, string> = {
+const dotColor: Record<BaseStatus | 'deleted', string> = {
   ready: 'success',
   processing: 'warning',
   error: 'error',
+  deleted: 'grey',
 }
 
 const text = computed(() => props.customText || textMap[props.status])

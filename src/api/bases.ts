@@ -4,6 +4,7 @@ export enum BaseStatus {
   READY = 'ready',
   PROCESSING = 'processing',
   ERROR = 'error',
+  DELETED = 'deleted',
 }
 
 export interface Base1C {
@@ -16,6 +17,8 @@ export interface Base1C {
   ownerId: number;
   description?: string;
   isEmpty: boolean;
+  isDeleted: boolean;
+  clusterGuid?: string;
 }
 
 export interface DtFile {
