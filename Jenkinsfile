@@ -66,7 +66,7 @@ spec:
                       --build-arg VITE_API_URL=https://cloud1c-server.dev-projects.goodwin.website/api \
                       --build-arg VITE_CLUSTER_ADDRESS=192.168.1.202 \
                       --build-arg VITE_IB_USER_PASS_REQUIRED=false \
-                      --build-arg VITE_CLUSTER_WEB_URL=https://cloud1c.dev-projects.goodwin.website
+                      --build-arg VITE_CLUSTER_WEB_URL=https://cloud1c.dev-projects.goodwin.website/
                     """
                 }
             }
