@@ -82,7 +82,7 @@ spec:
                             git config --global user.name "Jenkins CI"
 
                             # Замени ссылку на репо твоего фронта или его инфраструктуры
-                            git clone https://x-access-token:${G_TOKEN}@github.com:AlexGalitsky/cloud1c-gitops.git infra-repo
+                            git clone https://x-access-token:${G_TOKEN}@github.com/AlexGalitsky/cloud1c-gitops.git infra-repo
                             
                             cd infra-repo/k8s
                             
